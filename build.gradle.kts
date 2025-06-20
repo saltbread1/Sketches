@@ -12,16 +12,15 @@ version = "1.0"
 repositories {
     mavenCentral()
     maven (url = "https://jogamp.org/deployment/maven/")
-    maven (url = "https://maven.scijava.org/content/repositories/public/")
 }
 
 dependencies {
-    implementation("org.processing:core:4.3.4")
+    implementation("org.processing:core:4.4.4")
 
     /**** JOGL natives ****/
-    runtimeOnly("org.jogamp.gluegen:gluegen-rt-natives-all:2.5.0")
-    runtimeOnly("org.jogamp.jogl:jogl-all-natives-all:2.5.0")
-    runtimeOnly("org.jogamp.jogl:nativewindow:2.5.0")
+    runtimeOnly("org.jogamp.gluegen:gluegen-rt:2.5.0:natives-macosx-universal")
+    runtimeOnly("org.jogamp.jogl:jogl-all:2.5.0:natives-macosx-universal")
+
     runtimeOnly("org.jogamp.jogl:nativewindow-main:2.5.0")
 }
 
