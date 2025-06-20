@@ -1,38 +1,26 @@
 import processing.core.PApplet
 
-class Main() : PApplet()
+fun main(args: Array<String>)
 {
-    override fun settings()
+    if (args.isEmpty())
     {
-        size(512, 512, P3D)
+        System.err.println("Usage: <class-to-run>")
+        return
     }
 
-    override fun setup()
-    {
-        background(0)
-        sphereDetail(32)
-    }
+    val className = args[0]
 
-    override fun draw()
+    try
     {
-        background(0)
-        ambientLight(32f, 32f, 32f)
-        lightSpecular(255f, 255f, 255f)
-        pointLight(16f, 32f, 230f, mouseX.toFloat(), mouseY.toFloat(), 128f)
-        pushMatrix()
-        pushStyle()
-        translate((width / 2).toFloat(), (height / 2).toFloat(), 0f)
-        noStroke()
-        fill(250f, 8f, 32f)
-        specular(250f, 250f, 250f)
-        shininess(5f)
-        sphere(64f)
-        popStyle()
-        popMatrix()
+        val clazz = Class.forName(className).kotlin
+        PApplet.main(clazz.java)
     }
-}
-
-fun main()
-{
-    PApplet.main(Main::class.java)
+    catch (e: ClassNotFoundException)
+    {
+        System.err.println("Class '$className' is not found")
+    }
+    catch (e: Exception)
+    {
+        System.err.println("Error: ${e.message}")
+    }
 }

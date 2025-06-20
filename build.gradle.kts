@@ -45,30 +45,3 @@ tasks.named<ShadowJar>("shadowJar")
         attributes["Main-Class"] = "MainKt"
     }
 }
-
-
-/**** custom tasks ****/
-
-// java exec
-tasks.register<JavaExec>("runMain") {
-    mainClass.set("MainKt")
-    classpath = sourceSets["main"].runtimeClasspath
-}
-
-// jar
-tasks.register<Jar>("jarMain") {
-    archiveBaseName.set("main")
-    manifest {
-        attributes["Main-Class"] = "MainKt"
-    }
-    from(sourceSets.main.get().output)
-}
-
-// shadow jar
-tasks.register<ShadowJar>("fatJarMain") {
-    manifest {
-        attributes["Main-Class"] = "MainKt"
-    }
-    from(sourceSets.main.get().output)
-    configurations = listOf(project.configurations.runtimeClasspath.get())
-}
