@@ -1,1 +1,1 @@
-rootProject.name = "ProcessingTemplate"
+rootProject.name = "Sketches"
