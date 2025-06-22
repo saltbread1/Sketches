@@ -2,17 +2,13 @@ package s20250621a
 
 import processing.core.PApplet
 import processing.core.PGraphics
-import util.timestamp
-import java.io.File
+import util.*
 
 class S20250621a : PApplet()
 {
     private val far = 100.0f
     private var aspect = 0.0f
-
-    private val colors = "ae8b70-fa81cd-664864-efefef-9c3f26-c4c7bf-87a0ad-89d6c3-384a4d-77b764"
-    private val palette = colors.split("-").map { it.toInt(16) }.toIntArray()
-
+    private val palette = createPalette("ae8b70-fa81cd-664864-efefef-9c3f26-c4c7bf-87a0ad-89d6c3-384a4d-77b764")
     private var pg: PGraphics? = null
     private val isSave = false
 
@@ -86,7 +82,7 @@ class S20250621a : PApplet()
 
         if (isSave)
         {
-            saveFrame("output" + File.separator + this::class.simpleName + File.separator + timestamp("yyyyMMddHHmmss") + "-######.png")
+            saveFrame(saveName(this::class))
         }
     }
 
