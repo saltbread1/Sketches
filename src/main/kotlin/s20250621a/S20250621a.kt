@@ -14,7 +14,7 @@ class S20250621a : PApplet()
     private val palette = colors.split("-").map { it.toInt(16) }.toIntArray()
 
     private var pg: PGraphics? = null
-    private val isSave = true
+    private val isSave = false
 
     override fun settings()
     {
