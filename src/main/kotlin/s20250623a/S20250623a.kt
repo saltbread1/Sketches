@@ -40,7 +40,9 @@ class S20250623a : PApplet()
 
         this.aspect = width.toFloat() / height.toFloat()
         perspective(fovy, aspect, 0.1f, far)
-        camera(0.0f, 0.0f, 1.0f / tan(fovy / 2.0f), 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f)
+        camera(0.0f, 0.0f, 2.0f / tan(fovy/ 2.0f), 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f)
+
+        textureMode(NORMAL)
 
         noLoop()
     }
@@ -49,13 +51,76 @@ class S20250623a : PApplet()
     {
         background(0)
 
-        val idx = random(pixelFillers.size.toFloat()).toInt()
-        image(pixelFillers[idx].getImage(), -aspect, -1.0f, 2.0f * aspect, 2.0f)
+        pushMatrix()
+        rotateX(random(TWO_PI))
+        rotateY(random(TWO_PI))
+        rotateZ(random(TWO_PI))
+        drawTexturedBox(1.0f)
+        popMatrix()
 
         if (isSave)
         {
             saveFrame(saveName(this::class))
         }
+    }
+
+    private fun drawTexturedBox(boxSize: Float)
+    {
+        val selectedFillers = pixelFillers.shuffled().take(6)
+
+        // front face
+        beginShape(QUADS)
+        texture(selectedFillers[0].getImage())
+        vertex(-boxSize/ 2.0f, -boxSize/ 2.0f, boxSize/ 2.0f, 0.0f, 0.0f)
+        vertex(boxSize/ 2.0f, -boxSize/ 2.0f, boxSize/ 2.0f, 1.0f, 0.0f)
+        vertex(boxSize/ 2.0f, boxSize/ 2.0f, boxSize/ 2.0f, 1.0f, 1.0f)
+        vertex(-boxSize/ 2.0f, boxSize/ 2.0f, boxSize/ 2.0f, 0.0f, 1.0f)
+        endShape()
+
+        // back face
+        beginShape(QUADS)
+        texture(selectedFillers[1].getImage())
+        vertex(boxSize/ 2.0f, -boxSize/ 2.0f, -boxSize/ 2.0f, 0.0f, 0.0f)
+        vertex(-boxSize/ 2.0f, -boxSize/ 2.0f, -boxSize/ 2.0f, 1.0f, 0.0f)
+        vertex(-boxSize/ 2.0f, boxSize/ 2.0f, -boxSize/ 2.0f, 1.0f, 1.0f)
+        vertex(boxSize/ 2.0f, boxSize/ 2.0f, -boxSize/ 2.0f, 0.0f, 1.0f)
+        endShape()
+
+        // right face
+        beginShape(QUADS)
+        texture(selectedFillers[2].getImage())
+        vertex(boxSize/ 2.0f, -boxSize/ 2.0f, boxSize/ 2.0f, 0.0f, 0.0f)
+        vertex(boxSize/ 2.0f, -boxSize/ 2.0f, -boxSize/ 2.0f, 1.0f, 0.0f)
+        vertex(boxSize/ 2.0f, boxSize/ 2.0f, -boxSize/ 2.0f, 1.0f, 1.0f)
+        vertex(boxSize/ 2.0f, boxSize/ 2.0f, boxSize/ 2.0f, 0.0f, 1.0f)
+        endShape()
+
+        // left face
+        beginShape(QUADS)
+        texture(selectedFillers[3].getImage())
+        vertex(-boxSize/ 2.0f, -boxSize/ 2.0f, -boxSize/ 2.0f, 0.0f, 0.0f)
+        vertex(-boxSize/ 2.0f, -boxSize/ 2.0f, boxSize/ 2.0f, 1.0f, 0.0f)
+        vertex(-boxSize/ 2.0f, boxSize/ 2.0f, boxSize/ 2.0f, 1.0f, 1.0f)
+        vertex(-boxSize/ 2.0f, boxSize/ 2.0f, -boxSize/ 2.0f, 0.0f, 1.0f)
+        endShape()
+        
+        // top face
+        beginShape(QUADS)
+        texture(selectedFillers[4].getImage())
+        vertex(-boxSize/ 2.0f, -boxSize/ 2.0f, -boxSize/ 2.0f, 0.0f, 0.0f)
+        vertex(boxSize/ 2.0f, -boxSize/ 2.0f, -boxSize/ 2.0f, 1.0f, 0.0f)
+        vertex(boxSize/ 2.0f, -boxSize/ 2.0f, boxSize/ 2.0f, 1.0f, 1.0f)
+        vertex(-boxSize/ 2.0f, -boxSize/ 2.0f, boxSize/ 2.0f, 0.0f, 1.0f)
+        endShape()
+
+        // bottom face
+        beginShape(QUADS)
+        texture(selectedFillers[5].getImage())
+        vertex(-boxSize/ 2.0f, boxSize/ 2.0f, boxSize/ 2.0f, 0.0f, 0.0f)
+        vertex(boxSize/ 2.0f, boxSize/ 2.0f, boxSize/ 2.0f, 1.0f, 0.0f)
+        vertex(boxSize/ 2.0f, boxSize/ 2.0f, -boxSize/ 2.0f, 1.0f, 1.0f)
+        vertex(-boxSize/ 2.0f, boxSize/ 2.0f, -boxSize/ 2.0f, 0.0f, 1.0f)
+        endShape()
     }
 
     override fun keyPressed()
@@ -66,7 +131,7 @@ class S20250623a : PApplet()
     private inner class PixelFiller
     {
         private val pg: PGraphics
-        private val numPixels: Int = 64
+        private val numPixels: Int
         private val pixelList = mutableListOf<Pixel>()
         private val fillChecker: BooleanArray
         private val bgColor = 0xff000000.toInt()
@@ -74,6 +139,7 @@ class S20250623a : PApplet()
         constructor(pWidth: Int, pHeight: Int)
         {
             this.pg = createGraphics(pWidth, pHeight, P2D)
+            this.numPixels = random(20.0f, 40.0f).toInt()
             fillChecker = BooleanArray((pg.width + 2) * (pg.height + 2)) { false }
         }
 
@@ -150,13 +216,13 @@ class S20250623a : PApplet()
         val isAlive: Boolean get() = life > 0
 
         private val dirs = arrayOf(
-            PVector( 0.0f, -1.0f),
-            PVector( 1.0f, -1.0f),
-            PVector( 1.0f,  0.0f),
-            PVector( 1.0f,  1.0f),
-            PVector( 0.0f,  1.0f),
-            PVector(-1.0f,  1.0f),
-            PVector(-1.0f,  0.0f),
+            PVector(0.0f, -1.0f),
+            PVector(1.0f, -1.0f),
+            PVector(1.0f, 0.0f),
+            PVector(1.0f, 1.0f),
+            PVector(0.0f, 1.0f),
+            PVector(-1.0f, 1.0f),
+            PVector(-1.0f, 0.0f),
             PVector(-1.0f, -1.0f),
         )
 
@@ -185,7 +251,7 @@ class S20250623a : PApplet()
             {
                 return
             }
-            
+
             var attempts = 0
             while (attempts < 8)
             {
@@ -201,11 +267,11 @@ class S20250623a : PApplet()
                     life--
                     return
                 }
-                
+
                 dir = (dir + 1) % 8
                 attempts++
             }
-            
+
             life = 0
         }
 
