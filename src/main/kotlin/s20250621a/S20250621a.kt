@@ -22,6 +22,7 @@ class S20250621a : PApplet()
         else
         {
             size(1280, 720, P2D)
+            pixelDensity(1)
         }
     }
 
