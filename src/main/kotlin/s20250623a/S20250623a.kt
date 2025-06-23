@@ -3,66 +3,77 @@ package s20250623a
 import processing.core.PApplet
 import processing.core.PGraphics
 import processing.core.PVector
-import util.clamp
-import util.createPalette
-import util.saveName
+import util.*
 
 class S20250623a : PApplet()
 {
     private val palette = createPalette("ae8b70-fa81cd-664864-efefef-9c3f26-c4c7bf-87a0ad-89d6c3-384a4d-77b764")
-    private val numPixels = 64
-    private var pg: PGraphics? = null
-    private var pixelFiller: PixelFiller? = null
-    private val bgColor = 0xff000000.toInt()
+    private val numFillers = 32
+    private var pixelFillers: MutableList<PixelFiller> = mutableListOf()
     private val isSave = false
+
+    private val fovy = HALF_PI
+    private val far = 100.0f
+    private var aspect = 0.0f
 
     override fun settings()
     {
-        size(640, 360, P2D)
+        size(1280, 720, P3D)
     }
 
     override fun setup()
     {
-        pg = createGraphics(width, height, P2D)
-        pixelFiller = PixelFiller(pg!!, numPixels)
-        pixelFiller!!.init()
+        // setup pixel fillers
+        (0 until numFillers)
+            .forEach { _ ->
+                val pixelFiller = PixelFiller(320, 320)
+                pixelFiller.init()
+                pixelFillers.add(pixelFiller)
+            }
+        while (pixelFillers.count { pixelFiller -> pixelFiller.update() } > 0)
+        {
+            pixelFillers.forEach { pixelFiller ->
+                pixelFiller.update()
+                pixelFiller.render()
+            }
+        }
+
+        this.aspect = width.toFloat() / height.toFloat()
+        perspective(fovy, aspect, 0.1f, far)
+        camera(0.0f, 0.0f, 1.0f / tan(fovy / 2.0f), 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f)
+
+        noLoop()
     }
 
     override fun draw()
     {
         background(0)
 
-        if (!pixelFiller!!.update())
+        val idx = random(pixelFillers.size.toFloat()).toInt()
+        image(pixelFillers[idx].getImage(), -aspect, -1.0f, 2.0f * aspect, 2.0f)
+
+        if (isSave)
         {
-            if (isSave)
-            {
-                saveFrame(saveName(this::class))
-            }
-            noLoop()
+            saveFrame(saveName(this::class))
         }
-
-        pixelFiller!!.draw()
-
-        image(pg, 0.0f, 0.0f)
     }
 
     override fun keyPressed()
     {
-        frameCount = 0
-        loop()
+        redraw()
     }
 
     private inner class PixelFiller
     {
         private val pg: PGraphics
-        private val numPixels: Int
+        private val numPixels: Int = 64
         private val pixelList = mutableListOf<Pixel>()
         private val fillChecker: BooleanArray
+        private val bgColor = 0xff000000.toInt()
 
-        constructor(pg: PGraphics, numPixels: Int)
+        constructor(pWidth: Int, pHeight: Int)
         {
-            this.pg = pg
-            this.numPixels = numPixels
+            this.pg = createGraphics(pWidth, pHeight, P2D)
             fillChecker = BooleanArray((pg.width + 2) * (pg.height + 2)) { false }
         }
 
@@ -115,12 +126,14 @@ class S20250623a : PApplet()
             return true
         }
 
-        fun draw()
+        fun render()
         {
             pg.beginDraw()
             pixelList.forEach { pixel -> pixel.draw() }
             pg.endDraw()
         }
+
+        fun getImage(): PGraphics = pg
     }
 
     private inner class Pixel
