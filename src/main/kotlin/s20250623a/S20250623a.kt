@@ -38,12 +38,12 @@ class S20250623a : PApplet()
             }
         }
 
+        // camera
         this.aspect = width.toFloat() / height.toFloat()
         perspective(fovy, aspect, 0.1f, far)
-        camera(0.0f, 0.0f, 2.0f / tan(fovy/ 2.0f), 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f)
+        camera(0.0f, 0.0f, 2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f)
 
         textureMode(NORMAL)
-
         noLoop()
     }
 
@@ -71,60 +71,64 @@ class S20250623a : PApplet()
         // front face
         beginShape(QUADS)
         texture(selectedFillers[0].getImage())
-        vertex(-boxSize/ 2.0f, -boxSize/ 2.0f, boxSize/ 2.0f, 0.0f, 0.0f)
-        vertex(boxSize/ 2.0f, -boxSize/ 2.0f, boxSize/ 2.0f, 1.0f, 0.0f)
-        vertex(boxSize/ 2.0f, boxSize/ 2.0f, boxSize/ 2.0f, 1.0f, 1.0f)
-        vertex(-boxSize/ 2.0f, boxSize/ 2.0f, boxSize/ 2.0f, 0.0f, 1.0f)
+        vertex(-boxSize / 2.0f, -boxSize / 2.0f, boxSize / 2.0f, 0.0f, 0.0f)
+        vertex(boxSize / 2.0f, -boxSize / 2.0f, boxSize / 2.0f, 1.0f, 0.0f)
+        vertex(boxSize / 2.0f, boxSize / 2.0f, boxSize / 2.0f, 1.0f, 1.0f)
+        vertex(-boxSize / 2.0f, boxSize / 2.0f, boxSize / 2.0f, 0.0f, 1.0f)
         endShape()
 
         // back face
         beginShape(QUADS)
         texture(selectedFillers[1].getImage())
-        vertex(boxSize/ 2.0f, -boxSize/ 2.0f, -boxSize/ 2.0f, 0.0f, 0.0f)
-        vertex(-boxSize/ 2.0f, -boxSize/ 2.0f, -boxSize/ 2.0f, 1.0f, 0.0f)
-        vertex(-boxSize/ 2.0f, boxSize/ 2.0f, -boxSize/ 2.0f, 1.0f, 1.0f)
-        vertex(boxSize/ 2.0f, boxSize/ 2.0f, -boxSize/ 2.0f, 0.0f, 1.0f)
+        vertex(boxSize / 2.0f, -boxSize / 2.0f, -boxSize / 2.0f, 0.0f, 0.0f)
+        vertex(-boxSize / 2.0f, -boxSize / 2.0f, -boxSize / 2.0f, 1.0f, 0.0f)
+        vertex(-boxSize / 2.0f, boxSize / 2.0f, -boxSize / 2.0f, 1.0f, 1.0f)
+        vertex(boxSize / 2.0f, boxSize / 2.0f, -boxSize / 2.0f, 0.0f, 1.0f)
         endShape()
 
         // right face
         beginShape(QUADS)
         texture(selectedFillers[2].getImage())
-        vertex(boxSize/ 2.0f, -boxSize/ 2.0f, boxSize/ 2.0f, 0.0f, 0.0f)
-        vertex(boxSize/ 2.0f, -boxSize/ 2.0f, -boxSize/ 2.0f, 1.0f, 0.0f)
-        vertex(boxSize/ 2.0f, boxSize/ 2.0f, -boxSize/ 2.0f, 1.0f, 1.0f)
-        vertex(boxSize/ 2.0f, boxSize/ 2.0f, boxSize/ 2.0f, 0.0f, 1.0f)
+        vertex(boxSize / 2.0f, -boxSize / 2.0f, boxSize / 2.0f, 0.0f, 0.0f)
+        vertex(boxSize / 2.0f, -boxSize / 2.0f, -boxSize / 2.0f, 1.0f, 0.0f)
+        vertex(boxSize / 2.0f, boxSize / 2.0f, -boxSize / 2.0f, 1.0f, 1.0f)
+        vertex(boxSize / 2.0f, boxSize / 2.0f, boxSize / 2.0f, 0.0f, 1.0f)
         endShape()
 
         // left face
         beginShape(QUADS)
         texture(selectedFillers[3].getImage())
-        vertex(-boxSize/ 2.0f, -boxSize/ 2.0f, -boxSize/ 2.0f, 0.0f, 0.0f)
-        vertex(-boxSize/ 2.0f, -boxSize/ 2.0f, boxSize/ 2.0f, 1.0f, 0.0f)
-        vertex(-boxSize/ 2.0f, boxSize/ 2.0f, boxSize/ 2.0f, 1.0f, 1.0f)
-        vertex(-boxSize/ 2.0f, boxSize/ 2.0f, -boxSize/ 2.0f, 0.0f, 1.0f)
+        vertex(-boxSize / 2.0f, -boxSize / 2.0f, -boxSize / 2.0f, 0.0f, 0.0f)
+        vertex(-boxSize / 2.0f, -boxSize / 2.0f, boxSize / 2.0f, 1.0f, 0.0f)
+        vertex(-boxSize / 2.0f, boxSize / 2.0f, boxSize / 2.0f, 1.0f, 1.0f)
+        vertex(-boxSize / 2.0f, boxSize / 2.0f, -boxSize / 2.0f, 0.0f, 1.0f)
         endShape()
-        
+
         // top face
         beginShape(QUADS)
         texture(selectedFillers[4].getImage())
-        vertex(-boxSize/ 2.0f, -boxSize/ 2.0f, -boxSize/ 2.0f, 0.0f, 0.0f)
-        vertex(boxSize/ 2.0f, -boxSize/ 2.0f, -boxSize/ 2.0f, 1.0f, 0.0f)
-        vertex(boxSize/ 2.0f, -boxSize/ 2.0f, boxSize/ 2.0f, 1.0f, 1.0f)
-        vertex(-boxSize/ 2.0f, -boxSize/ 2.0f, boxSize/ 2.0f, 0.0f, 1.0f)
+        vertex(-boxSize / 2.0f, -boxSize / 2.0f, -boxSize / 2.0f, 0.0f, 0.0f)
+        vertex(boxSize / 2.0f, -boxSize / 2.0f, -boxSize / 2.0f, 1.0f, 0.0f)
+        vertex(boxSize / 2.0f, -boxSize / 2.0f, boxSize / 2.0f, 1.0f, 1.0f)
+        vertex(-boxSize / 2.0f, -boxSize / 2.0f, boxSize / 2.0f, 0.0f, 1.0f)
         endShape()
 
         // bottom face
         beginShape(QUADS)
         texture(selectedFillers[5].getImage())
-        vertex(-boxSize/ 2.0f, boxSize/ 2.0f, boxSize/ 2.0f, 0.0f, 0.0f)
-        vertex(boxSize/ 2.0f, boxSize/ 2.0f, boxSize/ 2.0f, 1.0f, 0.0f)
-        vertex(boxSize/ 2.0f, boxSize/ 2.0f, -boxSize/ 2.0f, 1.0f, 1.0f)
-        vertex(-boxSize/ 2.0f, boxSize/ 2.0f, -boxSize/ 2.0f, 0.0f, 1.0f)
+        vertex(-boxSize / 2.0f, boxSize / 2.0f, boxSize / 2.0f, 0.0f, 0.0f)
+        vertex(boxSize / 2.0f, boxSize / 2.0f, boxSize / 2.0f, 1.0f, 0.0f)
+        vertex(boxSize / 2.0f, boxSize / 2.0f, -boxSize / 2.0f, 1.0f, 1.0f)
+        vertex(-boxSize / 2.0f, boxSize / 2.0f, -boxSize / 2.0f, 0.0f, 1.0f)
         endShape()
     }
 
     override fun keyPressed()
     {
+        if (key == ESC)
+        {
+            return
+        }
         redraw()
     }
 

@@ -134,6 +134,10 @@ class S20250621a : PApplet()
 
     override fun keyPressed()
     {
+        if (key == ESC)
+        {
+            return
+        }
         val seed = System.currentTimeMillis()
         noiseSeed(seed)
         randomSeed(seed)
