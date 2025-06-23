@@ -1,6 +1,7 @@
 package s20250623a
 
 import processing.core.PApplet
+import processing.core.PGraphics
 import processing.core.PVector
 import util.clamp
 import util.createPalette
@@ -8,10 +9,11 @@ import util.saveName
 
 class S20250623a : PApplet()
 {
-    private var pixelChecker = booleanArrayOf()
-    private var pixelList = mutableListOf<Pixel>()
     private val palette = createPalette("ae8b70-fa81cd-664864-efefef-9c3f26-c4c7bf-87a0ad-89d6c3-384a4d-77b764")
     private val numPixels = 64
+    private var pg: PGraphics? = null
+    private var pixelFiller: PixelFiller? = null
+    private val bgColor = 0xff000000.toInt()
     private val isSave = false
 
     override fun settings()
@@ -21,33 +23,16 @@ class S20250623a : PApplet()
 
     override fun setup()
     {
-        init()
-    }
-
-    private fun init()
-    {
-        pixelChecker = BooleanArray((width + 2) * (height + 2)) { false }
-
-        // boundary
-        for (i in 0 until width + 2)
-        {
-            pixelChecker[i] = true
-            pixelChecker[(width + 2) * (height + 1) + i] = true
-        }
-        for (i in 0 until height + 2)
-        {
-            pixelChecker[i * (width + 2)] = true
-            pixelChecker[i * (width + 2) + width + 1] = true
-        }
-
-        pixelList.clear()
+        pg = createGraphics(width, height, P2D)
+        pixelFiller = PixelFiller(pg!!, numPixels)
+        pixelFiller!!.init()
     }
 
     override fun draw()
     {
         background(0)
 
-        if (pixelChecker.asSequence().filter { it }.count() > pixelChecker.size * 0.5f)
+        if (!pixelFiller!!.update())
         {
             if (isSave)
             {
@@ -56,28 +41,91 @@ class S20250623a : PApplet()
             noLoop()
         }
 
-        pixelList.removeAll { !it.isAlive && it.trailCount() <= 8 }
+        pixelFiller!!.draw()
 
-        repeat(20)
-        {
-            while (pixelList.count { pixel -> pixel.isAlive } < numPixels)
-            {
-                pixelList.add(Pixel())
-            }
-            pixelList.forEach { pixel -> pixel.update() }
-        }
-
-        pixelList.forEach { pixel -> pixel.draw() }
+        image(pg, 0.0f, 0.0f)
     }
 
     override fun keyPressed()
     {
-        init()
+        frameCount = 0
         loop()
+    }
+
+    private inner class PixelFiller
+    {
+        private val pg: PGraphics
+        private val numPixels: Int
+        private val pixelList = mutableListOf<Pixel>()
+        private val fillChecker: BooleanArray
+
+        constructor(pg: PGraphics, numPixels: Int)
+        {
+            this.pg = pg
+            this.numPixels = numPixels
+            fillChecker = BooleanArray((pg.width + 2) * (pg.height + 2)) { false }
+        }
+
+        fun init()
+        {
+            pixelList.clear()
+            fillChecker.fill(false);
+
+            // boundary
+            for (i in 0 until pg.width + 2)
+            {
+                fillChecker[i] = true
+                fillChecker[(pg.width + 2) * (pg.height + 1) + i] = true
+            }
+            for (i in 0 until pg.height + 2)
+            {
+                fillChecker[i * (pg.width + 2)] = true
+                fillChecker[i * (pg.width + 2) + pg.width + 1] = true
+            }
+
+            // clear framebuffer
+            pg.beginDraw()
+            pg.background(bgColor)
+            pg.endDraw()
+        }
+
+        fun update(): Boolean
+        {
+            if (fillChecker.asSequence().filter { it }.count() > fillChecker.size * 0.5f)
+            {
+                return false
+            }
+
+            val minTrails = 8
+            val iterations = 20
+
+            pixelList.removeAll { !it.isAlive && it.trailCount() <= minTrails }
+
+            repeat(iterations)
+            {
+                while (pixelList.count { pixel -> pixel.isAlive } < numPixels)
+                {
+                    val pixel = Pixel(pg)
+                    pixel.init(fillChecker)
+                    pixelList.add(pixel)
+                }
+                pixelList.forEach { pixel -> pixel.update(fillChecker) }
+            }
+
+            return true
+        }
+
+        fun draw()
+        {
+            pg.beginDraw()
+            pixelList.forEach { pixel -> pixel.draw() }
+            pg.endDraw()
+        }
     }
 
     private inner class Pixel
     {
+        private val pg: PGraphics
         private var x: Int
         private var y: Int
         private val color: Int
@@ -99,21 +147,26 @@ class S20250623a : PApplet()
             PVector(-1.0f, -1.0f),
         )
 
-        constructor()
+        constructor(pg: PGraphics)
         {
-            this.x = random(width.toFloat()).toInt()
-            this.y = random(height.toFloat()).toInt()
-            this.color = palette[random(palette.size.toFloat()).toInt()]
-            this.life = random(500.0f, 2000.0f).toInt()
-            this.dir = random(8.0f).toInt()
-            this.step = if (random(1.0f) < 0.7f) 1 else 2
+            this.pg = pg
+            x = random(pg.width.toFloat()).toInt()
+            y = random(pg.height.toFloat()).toInt()
+            color = palette[random(palette.size.toFloat()).toInt()]
+            life = random(500.0f, 2000.0f).toInt()
+            dir = random(8.0f).toInt()
+            step = if (random(1.0f) < 0.7f) 1 else 2
             trails.add(PVector(x.toFloat(), y.toFloat()))
-
-            val idx = (x + 1 + (y + 1) * (width + 2))
-            pixelChecker[idx] = true
         }
 
-        fun update()
+        private fun getIndex(x: Int, y: Int): Int = (x + 1 + (y + 1) * (pg.width + 2))
+
+        fun init(pixelChecker: BooleanArray)
+        {
+            pixelChecker[getIndex(x, y)] = true
+        }
+
+        fun update(pixelChecker: BooleanArray)
         {
             if (life <= 0)
             {
@@ -123,9 +176,9 @@ class S20250623a : PApplet()
             var attempts = 0
             while (attempts < 8)
             {
-                val newX = clamp(x + dirs[dir].x.toInt() * step, 0, width)
-                val newY = clamp(y + dirs[dir].y.toInt() * step, 0, height)
-                val idx = (newX + 1 + (newY + 1) * (width + 2))
+                val newX = clamp(x + dirs[dir].x.toInt() * step, 0, pg.width)
+                val newY = clamp(y + dirs[dir].y.toInt() * step, 0, pg.height)
+                val idx = getIndex(newX, newY)
                 if (!pixelChecker[idx])
                 {
                     pixelChecker[idx] = true
@@ -145,8 +198,9 @@ class S20250623a : PApplet()
 
         fun draw()
         {
-            stroke(color)
-            trails.forEach { trail -> point(trail.x, trail.y) }
+            pg.stroke(color)
+            trails.forEach { trail -> pg.point(trail.x, trail.y) }
+            trails.clear() // clear buffer
         }
 
         fun trailCount(): Int = trails.size
