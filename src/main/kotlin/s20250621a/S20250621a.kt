@@ -14,11 +14,14 @@ class S20250621a : PApplet()
 
     override fun settings()
     {
-        size(1280, 720, P2D)
         if (isSave)
         { // 4K
             size(1920, 1080, P2D)
             pixelDensity(2)
+        }
+        else
+        {
+            size(1280, 720, P2D)
         }
     }
 

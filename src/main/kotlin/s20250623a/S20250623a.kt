@@ -4,6 +4,7 @@ import processing.core.PApplet
 import processing.core.PVector
 import util.clamp
 import util.createPalette
+import util.saveName
 
 class S20250623a : PApplet()
 {
@@ -11,6 +12,7 @@ class S20250623a : PApplet()
     private var pixelList = mutableListOf<Pixel>()
     private val palette = createPalette("ae8b70-fa81cd-664864-efefef-9c3f26-c4c7bf-87a0ad-89d6c3-384a4d-77b764")
     private val numPixels = 64
+    private val isSave = false
 
     override fun settings()
     {
@@ -47,6 +49,10 @@ class S20250623a : PApplet()
 
         if (pixelChecker.asSequence().filter { it }.count() > pixelChecker.size * 0.5f)
         {
+            if (isSave)
+            {
+                saveFrame(saveName(this::class))
+            }
             noLoop()
         }
 
