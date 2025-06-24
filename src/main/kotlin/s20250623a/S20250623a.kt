@@ -3,33 +3,45 @@ package s20250623a
 import processing.core.PApplet
 import processing.core.PGraphics
 import processing.core.PVector
-import util.*
+import util.clamp
+import util.createPalette
+import util.saveName
+import kotlin.repeat
+
 
 class S20250623a : PApplet()
 {
-    private val palette = createPalette("ae8b70-fa81cd-664864-efefef-9c3f26-c4c7bf-87a0ad-89d6c3-384a4d-77b764")
-    private val numFillers = 32
+    private val palette = createPalette("d3cfdf-5db1b8-650f24-b10b24-1d38ac-0a1534-3a5431-bdb28d-2e140a-689578")
+    private val numFillers = 6
     private var pixelFillers: MutableList<PixelFiller> = mutableListOf()
     private val isSave = false
 
-    private val fovy = HALF_PI
-    private val far = 100.0f
-    private var aspect = 0.0f
-
     override fun settings()
     {
-        size(1280, 720, P3D)
+        if (isSave)
+        { // 4K
+            size(1920, 1080, P2D)
+            pixelDensity(2)
+        }
+        else
+        {
+            size(1280, 720, P2D)
+            pixelDensity(1)
+        }
     }
 
     override fun setup()
     {
+        (0 until numFillers).forEach { _ -> pixelFillers.add(PixelFiller(1280, 720)) }
+
+        blendMode(SUBTRACT)
+        noLoop()
+    }
+
+    override fun draw()
+    {
         // setup pixel fillers
-        (0 until numFillers)
-            .forEach { _ ->
-                val pixelFiller = PixelFiller(320, 320)
-                pixelFiller.init()
-                pixelFillers.add(pixelFiller)
-            }
+        pixelFillers.forEach { pixelFiller -> pixelFiller.init() }
         while (pixelFillers.count { pixelFiller -> pixelFiller.update() } > 0)
         {
             pixelFillers.forEach { pixelFiller ->
@@ -38,89 +50,21 @@ class S20250623a : PApplet()
             }
         }
 
-        // camera
-        this.aspect = width.toFloat() / height.toFloat()
-        perspective(fovy, aspect, 0.1f, far)
-        camera(0.0f, 0.0f, 2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f)
+        background(0xffc2c2c8.toInt())
 
-        textureMode(NORMAL)
-        noLoop()
-    }
-
-    override fun draw()
-    {
-        background(0)
-
-        pushMatrix()
-        rotateX(random(TWO_PI))
-        rotateY(random(TWO_PI))
-        rotateZ(random(TWO_PI))
-        drawTexturedBox(1.0f)
-        popMatrix()
+        var alpha = 240.0f
+        pushStyle()
+        pixelFillers.shuffled().forEach { pixelFiller ->
+            tint(0xffffffff.toInt(), alpha)
+            image(pixelFiller.getImage(), 0.0f, 0.0f, width.toFloat(), height.toFloat())
+            alpha *= 0.75f
+        }
+        popStyle()
 
         if (isSave)
         {
             saveFrame(saveName(this::class))
         }
-    }
-
-    private fun drawTexturedBox(boxSize: Float)
-    {
-        val selectedFillers = pixelFillers.shuffled().take(6)
-
-        // front face
-        beginShape(QUADS)
-        texture(selectedFillers[0].getImage())
-        vertex(-boxSize / 2.0f, -boxSize / 2.0f, boxSize / 2.0f, 0.0f, 0.0f)
-        vertex(boxSize / 2.0f, -boxSize / 2.0f, boxSize / 2.0f, 1.0f, 0.0f)
-        vertex(boxSize / 2.0f, boxSize / 2.0f, boxSize / 2.0f, 1.0f, 1.0f)
-        vertex(-boxSize / 2.0f, boxSize / 2.0f, boxSize / 2.0f, 0.0f, 1.0f)
-        endShape()
-
-        // back face
-        beginShape(QUADS)
-        texture(selectedFillers[1].getImage())
-        vertex(boxSize / 2.0f, -boxSize / 2.0f, -boxSize / 2.0f, 0.0f, 0.0f)
-        vertex(-boxSize / 2.0f, -boxSize / 2.0f, -boxSize / 2.0f, 1.0f, 0.0f)
-        vertex(-boxSize / 2.0f, boxSize / 2.0f, -boxSize / 2.0f, 1.0f, 1.0f)
-        vertex(boxSize / 2.0f, boxSize / 2.0f, -boxSize / 2.0f, 0.0f, 1.0f)
-        endShape()
-
-        // right face
-        beginShape(QUADS)
-        texture(selectedFillers[2].getImage())
-        vertex(boxSize / 2.0f, -boxSize / 2.0f, boxSize / 2.0f, 0.0f, 0.0f)
-        vertex(boxSize / 2.0f, -boxSize / 2.0f, -boxSize / 2.0f, 1.0f, 0.0f)
-        vertex(boxSize / 2.0f, boxSize / 2.0f, -boxSize / 2.0f, 1.0f, 1.0f)
-        vertex(boxSize / 2.0f, boxSize / 2.0f, boxSize / 2.0f, 0.0f, 1.0f)
-        endShape()
-
-        // left face
-        beginShape(QUADS)
-        texture(selectedFillers[3].getImage())
-        vertex(-boxSize / 2.0f, -boxSize / 2.0f, -boxSize / 2.0f, 0.0f, 0.0f)
-        vertex(-boxSize / 2.0f, -boxSize / 2.0f, boxSize / 2.0f, 1.0f, 0.0f)
-        vertex(-boxSize / 2.0f, boxSize / 2.0f, boxSize / 2.0f, 1.0f, 1.0f)
-        vertex(-boxSize / 2.0f, boxSize / 2.0f, -boxSize / 2.0f, 0.0f, 1.0f)
-        endShape()
-
-        // top face
-        beginShape(QUADS)
-        texture(selectedFillers[4].getImage())
-        vertex(-boxSize / 2.0f, -boxSize / 2.0f, -boxSize / 2.0f, 0.0f, 0.0f)
-        vertex(boxSize / 2.0f, -boxSize / 2.0f, -boxSize / 2.0f, 1.0f, 0.0f)
-        vertex(boxSize / 2.0f, -boxSize / 2.0f, boxSize / 2.0f, 1.0f, 1.0f)
-        vertex(-boxSize / 2.0f, -boxSize / 2.0f, boxSize / 2.0f, 0.0f, 1.0f)
-        endShape()
-
-        // bottom face
-        beginShape(QUADS)
-        texture(selectedFillers[5].getImage())
-        vertex(-boxSize / 2.0f, boxSize / 2.0f, boxSize / 2.0f, 0.0f, 0.0f)
-        vertex(boxSize / 2.0f, boxSize / 2.0f, boxSize / 2.0f, 1.0f, 0.0f)
-        vertex(boxSize / 2.0f, boxSize / 2.0f, -boxSize / 2.0f, 1.0f, 1.0f)
-        vertex(-boxSize / 2.0f, boxSize / 2.0f, -boxSize / 2.0f, 0.0f, 1.0f)
-        endShape()
     }
 
     override fun keyPressed()
@@ -139,18 +83,19 @@ class S20250623a : PApplet()
         private val pixelList = mutableListOf<Pixel>()
         private val fillChecker: BooleanArray
         private val bgColor = 0xff000000.toInt()
+        private var numInitUncheck: Int = 0
 
         constructor(pWidth: Int, pHeight: Int)
         {
             this.pg = createGraphics(pWidth, pHeight, P2D)
-            this.numPixels = random(20.0f, 40.0f).toInt()
+            this.numPixels = max(3, pWidth * pHeight / 20000)
             fillChecker = BooleanArray((pg.width + 2) * (pg.height + 2)) { false }
         }
 
         fun init()
         {
             pixelList.clear()
-            fillChecker.fill(false);
+            fillChecker.fill(false)
 
             // boundary
             for (i in 0 until pg.width + 2)
@@ -164,15 +109,57 @@ class S20250623a : PApplet()
                 fillChecker[i * (pg.width + 2) + pg.width + 1] = true
             }
 
-            // clear framebuffer
+            // create rectangles without overlap
+            val rects = mutableListOf<Rect>()
+            val maxIter = 20
+            loop@ while (true)
+            {
+                for (i in 0..maxIter)
+                {
+                    if (i == maxIter)
+                    {
+                        break@loop
+                    }
+                    val newRect = Rect(
+                        random((pg.width + 2).toFloat()),
+                        random((pg.height + 2).toFloat()),
+                        sq(random(1.0f)) * (pg.width + 2) * 0.12f,
+                        sq(random(1.0f)) * (pg.height + 2) * 0.12f
+                    )
+                    if (rects.none { rect -> rect.isOverlapped(newRect) })
+                    {
+                        rects.add(newRect)
+                        break
+                    }
+                }
+            }
+            // rectangle holes
+            for (i in 0 until fillChecker.size)
+            {
+                val x = (i % (pg.width + 2)) - 1
+                val y = (i / (pg.width + 2)) - 1
+                fillChecker[i] = rects.any { rect -> rect.isInterior(x.toFloat(), y.toFloat()) }
+            }
+
+            // count uncheck cells
+            numInitUncheck = fillChecker.count { !it }
+
+            // background
             pg.beginDraw()
             pg.background(bgColor)
+            pg.pushStyle()
+            pg.noStroke()
+            rects.forEach { rect ->
+                pg.fill(palette[random(palette.size.toFloat()).toInt()], 235.0f)
+                rect.draw(pg)
+            }
+            pg.popStyle()
             pg.endDraw()
         }
 
         fun update(): Boolean
         {
-            if (fillChecker.asSequence().filter { it }.count() > fillChecker.size * 0.5f)
+            if (fillChecker.count { it } > numInitUncheck * 0.78f)
             {
                 return false
             }
@@ -186,9 +173,7 @@ class S20250623a : PApplet()
             {
                 while (pixelList.count { pixel -> pixel.isAlive } < numPixels)
                 {
-                    val pixel = Pixel(pg)
-                    pixel.init(fillChecker)
-                    pixelList.add(pixel)
+                    pixelList.add(Pixel(pg))
                 }
                 pixelList.forEach { pixel -> pixel.update(fillChecker) }
             }
@@ -238,16 +223,11 @@ class S20250623a : PApplet()
             color = palette[random(palette.size.toFloat()).toInt()]
             life = random(500.0f, 2000.0f).toInt()
             dir = random(8.0f).toInt()
-            step = if (random(1.0f) < 0.7f) 1 else 2
-            trails.add(PVector(x.toFloat(), y.toFloat()))
+            val rand = random(1.0f)
+            step = if (rand < 0.7f) 1 else if (rand < 0.9f) 2 else 3
         }
 
         private fun getIndex(x: Int, y: Int): Int = (x + 1 + (y + 1) * (pg.width + 2))
-
-        fun init(pixelChecker: BooleanArray)
-        {
-            pixelChecker[getIndex(x, y)] = true
-        }
 
         fun update(pixelChecker: BooleanArray)
         {
@@ -287,5 +267,30 @@ class S20250623a : PApplet()
         }
 
         fun trailCount(): Int = trails.size
+    }
+
+    private class Rect
+    {
+        private val x: Float
+        private val y: Float
+        private val w: Float
+        private val h: Float
+
+        constructor(x: Float, y: Float, w: Float, h: Float)
+        {
+            this.x = x
+            this.y = y
+            this.w = w
+            this.h = h
+        }
+
+        fun isInterior(x: Float, y: Float): Boolean = x >= this.x && x <= this.x + w && y >= this.y && y <= this.y + h
+
+        fun isOverlapped(other: Rect): Boolean = x < other.x + other.w && x + w > other.x && y < other.y + other.h && y + h > other.y
+
+        fun draw(pg: PGraphics)
+        {
+            pg.rect(x, y, w, h)
+        }
     }
 }
