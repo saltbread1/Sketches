@@ -1,4 +1,4 @@
-package s20250623a
+package sketches
 
 import processing.core.PApplet
 import processing.core.PGraphics
@@ -7,7 +7,6 @@ import util.clamp
 import util.createPalette
 import util.saveName
 import kotlin.repeat
-
 
 class S20250623a : PApplet()
 {

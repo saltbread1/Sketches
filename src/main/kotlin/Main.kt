@@ -8,16 +8,16 @@ fun main(args: Array<String>)
         return
     }
 
-    val className = args[0]
+    val sketchClassName = args[0]
 
     try
     {
-        val clazz = Class.forName(className).kotlin
+        val clazz = Class.forName("sketches.$sketchClassName").kotlin
         PApplet.main(clazz.java)
     }
-    catch (e: ClassNotFoundException)
+    catch (_: ClassNotFoundException)
     {
-        System.err.println("Class '$className' is not found")
+        System.err.println("Class '$sketchClassName' is not found in 'sketches' package")
     }
     catch (e: Exception)
     {
