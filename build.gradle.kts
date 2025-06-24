@@ -1,8 +1,5 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-
 plugins {
     kotlin("jvm") version "1.9.24"
-    id("com.github.johnrengelman.shadow") version "8.1.1"
     application
 }
 
@@ -18,9 +15,12 @@ dependencies {
     implementation("org.processing:core:4.4.4")
 
     /**** JOGL natives ****/
+    // macos
+    // TODO: switch based on OS
     runtimeOnly("org.jogamp.gluegen:gluegen-rt:2.5.0:natives-macosx-universal")
     runtimeOnly("org.jogamp.jogl:jogl-all:2.5.0:natives-macosx-universal")
 
+    // native window
     runtimeOnly("org.jogamp.jogl:nativewindow-main:2.5.0")
 }
 
@@ -30,18 +30,4 @@ kotlin {
 
 application {
     mainClass.set("MainKt")
-}
-
-tasks.named<Jar>("jar")
-{
-    manifest {
-        attributes["Main-Class"] = "MainKt"
-    }
-}
-
-tasks.named<ShadowJar>("shadowJar")
-{
-    manifest {
-        attributes["Main-Class"] = "MainKt"
-    }
 }
