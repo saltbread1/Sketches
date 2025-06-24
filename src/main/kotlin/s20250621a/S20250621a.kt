@@ -14,11 +14,15 @@ class S20250621a : PApplet()
 
     override fun settings()
     {
-        size(1280, 720, P2D)
         if (isSave)
         { // 4K
             size(1920, 1080, P2D)
             pixelDensity(2)
+        }
+        else
+        {
+            size(1280, 720, P2D)
+            pixelDensity(1)
         }
     }
 
@@ -29,7 +33,6 @@ class S20250621a : PApplet()
 
         pg = createGraphics(width, height, P3D)
         pg!!.beginDraw()
-        pg!!.blendMode(ADD)
         pg!!.hint(DISABLE_DEPTH_TEST)
         pg!!.ortho(-aspect, aspect, -1.0f, 1.0f, 0.1f, far)
         pg!!.camera(0.0f, 0.0f, 1.0f / tan(fov / 2.0f), 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f)
@@ -54,30 +57,38 @@ class S20250621a : PApplet()
 
         // render
         pg!!.beginDraw()
-        pg!!.clear()
-        pg!!.noStroke()
+        pg!!.background(0, 0.0f)
         rectList.forEach { rect ->
             val cx = rect.x + rect.w / 2.0f
             val cy = rect.y + rect.h / 2.0f
-            pg!!.pushMatrix()
+            pg!!.push()
             trans(cx, cy, pg!!)
             pg!!.scale(rect.w, rect.h, rect.h)
-            pg!!.fill(getColor(0.42f))
+            pg!!.fill(getColor(0.44f))
+//            pg!!.strokeWeight(1.0f / min(rect.w, rect.h))
+//            pg!!.stroke(0xff000000.toInt(), sigmoid(rect.w * rect.h - 0.5f) * 60.0f)
+            pg!!.noStroke()
             pg!!.box(1.0f)
-            pg!!.popMatrix()
+            pg!!.pop()
         }
         pg!!.endDraw()
 
-        background(0xff4242ec.toInt())
-        noStroke()
+        background(0xff000000.toInt())
+        push()
+        stroke(0xff000000.toInt(), 60.0f)
         rectList.forEach { rect ->
             val x = map(rect.x, -aspect, aspect, 0.0f, width.toFloat())
             val y = map(rect.y, -1.0f, 1.0f, 0.0f, height.toFloat())
             val w = rect.w * width / (2.0f * aspect)
             val h = rect.h * height / 2.0f
-            fill(getColor(1.0f))
+            fill(getColor(0.57f))
             rect(x, y, w, h)
         }
+        pop()
+
+        blendMode(SUBTRACT)
+        image(pg, width * 0.011f, height * 0.008f)
+        blendMode(BLEND)
         image(pg, 0.0f, 0.0f)
 
         if (isSave)
@@ -131,6 +142,10 @@ class S20250621a : PApplet()
 
     override fun keyPressed()
     {
+        if (key == ESC)
+        {
+            return
+        }
         val seed = System.currentTimeMillis()
         noiseSeed(seed)
         randomSeed(seed)

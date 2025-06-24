@@ -15,10 +15,20 @@ fun timestamp(format: String): String
 
 fun createPalette(colors: String): IntArray
 {
-    return colors.split("-").map { it.toInt(16) }.toIntArray()
+    return colors.split("-").map { it.toInt(16) or (0xff000000.toInt()) }.toIntArray()
 }
 
 fun saveName(clazz: KClass<*>): String
 {
     return "output" + File.separator + clazz.simpleName + File.separator + timestamp("yyyyMMddHHmmss") + "-######.png"
+}
+
+fun clamp(value: Int, min: Int, max: Int): Int
+{
+    return if (value < min) min else if (value > max) max else value
+}
+
+fun clamp(value: Float, min: Float, max: Float): Float
+{
+    return if (value < min) min else if (value > max) max else value
 }
