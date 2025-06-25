@@ -3,8 +3,7 @@ package sketches
 import processing.core.PApplet
 import processing.core.PGraphics
 import processing.core.PImage
-import util.createPalette
-import util.saveName
+import util.*
 
 class S20250625a : PApplet()
 {
@@ -12,7 +11,8 @@ class S20250625a : PApplet()
     private val textures = mutableListOf<PGraphics>()
     private val numKindTextures = 16
     private val far = 100.0f
-    private val isSave = true
+    private var aspect = 0.0f
+    private val isSave = false
 
     override fun settings()
     {
@@ -30,14 +30,16 @@ class S20250625a : PApplet()
 
     override fun setup()
     {
-        (0 until numKindTextures).forEach { i ->
+        repeat(numKindTextures)
+        {
             val pg = createGraphics(256, 256, P2D)
             pg.beginDraw()
             pg.background(0xff000000.toInt())
             pg.blendMode(ADD)
             var gridWidth = 32
             var gridHeight = 32
-            (0 until 5).forEach { _ ->
+            repeat(5)
+            {
                 gridRects(gridWidth, gridHeight, pg)
                 gridWidth /= 2
                 gridHeight /= 2
@@ -46,21 +48,20 @@ class S20250625a : PApplet()
             textures.add(pg)
         }
 
-        ortho(-width.toFloat() * 0.5f, width.toFloat() * 0.5f, -height.toFloat() * 0.5f, height.toFloat() * 0.5f, 0.0f, far)
-        camera(width.toFloat() / 2.0f, height.toFloat() / 2.0f, 1.0f,
-            width.toFloat() / 2.0f, height.toFloat() / 2.0f, 0.0f,
-            0.0f, 1.0f, 0.0f)
+        this.aspect = width.toFloat() / height.toFloat()
+        ortho(-aspect, aspect, -1.0f, 1.0f, 0.0f, far)
+        camera(0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f)
 
         textureMode(NORMAL)
-        hint(DISABLE_DEPTH_TEST)
+//        blendMode(ADD)
+//        hint(DISABLE_DEPTH_TEST)
         noLoop()
     }
 
     override fun draw()
     {
         background(0xff000000.toInt())
-        noStroke()
-        gridCube(width / 10, height / 10, -far * 0.5f, textures)
+        gridCube(40, textures)
 
         if (isSave)
         {
@@ -68,18 +69,16 @@ class S20250625a : PApplet()
         }
     }
 
-    private fun gridRects(gridWidth: Int, gridHeight: Int, pg: PGraphics)
+    private fun gridRects(nx: Int, ny: Int, pg: PGraphics)
     {
-        for (iy in 0..gridHeight)
+        for (iy in 0..ny)
         {
-            for (ix in 0..gridWidth)
+            for (ix in 0..nx)
             {
-                val w = pg.width / gridWidth.toFloat()
-                val h = pg.height / gridHeight.toFloat()
-                val x = w * ix
-                val y = h * iy
+                val w = pg.width / nx.toFloat()
+                val h = pg.height / ny.toFloat()
                 pg.push()
-                pg.translate(x, y)
+                pg.translate(w * ix, h * iy)
                 pg.rotate(random(TWO_PI))
                 pg.rectMode(CENTER)
                 pg.noStroke()
@@ -90,29 +89,34 @@ class S20250625a : PApplet()
         }
     }
 
-    private fun gridCube(gridWidth: Int, gridHeight: Int, depth: Float, textures: Collection<PGraphics>)
+    private fun gridCube(ny: Int, textures: Collection<PGraphics>)
     {
-        for (iy in 0..gridHeight)
+        val nx = (ny * aspect).toInt()
+        for (iy in 0..ny)
         {
-            for (ix in 0..gridWidth)
+            for (ix in 0..nx)
             {
-                val w = width / gridWidth.toFloat()
-                val h = height / gridHeight.toFloat()
-                val x = w * ix
-                val y = h * iy
+                val w = 2.0f * aspect / nx.toFloat()
+                val h = 2.0f / ny.toFloat()
+                val x = w * ix - aspect
+                val y = h * iy - 1.0f
+                val n = noise((x + aspect) * 1.6f, (y + 1.0f) * 10.2f)
+                val z = -far * n
+                val s = max(6.5f * n, 1.0f)
+                val c = min(pow(1.0f - n, 4.0f) * 360.0f, 250.0f)
                 push()
-                translate(x, y, depth)
-                rotateZ(random(TWO_PI))
-                rotateY(random(TWO_PI))
-                rotateX(random(TWO_PI))
-                val s = 1.5f + noise(x / width * 10.0f, y / height * 10.0f) * 16.0f
-                drawTexturedCube(max(w, h) * s, textures.shuffled().take(6).toTypedArray())
+                translate(x, y, z)
+                rotateZ((n * 2.0f - 1.0f) * 4.1f)
+                rotateX(((1.0f - n) * 2.0f - 1.0f) * 2.9f)
+                stroke(c, 143.0f)
+                tint(c)
+                texturedCube(max(w, h) * s, textures.shuffled().take(6).toTypedArray())
                 pop()
             }
         }
     }
 
-    private fun drawTexturedCube(size: Float, textures: Array<PImage>)
+    private fun texturedCube(size: Float, textures: Array<PImage>)
     {
         if (textures.size < 6)
         {
@@ -180,6 +184,9 @@ class S20250625a : PApplet()
         {
             return
         }
+        val seed = System.currentTimeMillis()
+        noiseSeed(seed)
+        randomSeed(seed)
         redraw()
     }
 }
