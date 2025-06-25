@@ -12,7 +12,7 @@ class S20250625a : PApplet()
     private val numKindTextures = 16
     private val far = 100.0f
     private var aspect = 0.0f
-    private val isSave = false
+    private val isSave = true
 
     override fun settings()
     {
@@ -103,13 +103,14 @@ class S20250625a : PApplet()
                 val n = noise((x + aspect) * 1.6f, (y + 1.0f) * 10.2f)
                 val z = -far * n
                 val s = max(6.5f * n, 1.0f)
-                val c = min(pow(1.0f - n, 4.0f) * 360.0f, 250.0f)
+                val c = min(easeInPolynomial(1.0f - n, 4.0f) * 600.0f, 255.0f)
                 push()
                 translate(x, y, z)
                 rotateZ((n * 2.0f - 1.0f) * 4.1f)
                 rotateX(((1.0f - n) * 2.0f - 1.0f) * 2.9f)
-                stroke(c, 143.0f)
-                tint(c)
+//                stroke(c, 143.0f)
+                noStroke()
+                tint(c * 1.1f, c, c * 0.95f)
                 texturedCube(max(w, h) * s, textures.shuffled().take(6).toTypedArray())
                 pop()
             }
