@@ -7,7 +7,6 @@ import util.*
 class S20250625b : PApplet()
 {
     private val palette = createPalette("001219-005f73-0a9396-94d2bd-e9d8a6-ee9b00-ca6702-bb3e03-ae2012-9b2226")
-    private val numPolygons = 100
     private val polygons = mutableListOf<Polygon>()
     private var aspect = 0.0f
     private val far = 100.0f
@@ -39,12 +38,13 @@ class S20250625b : PApplet()
 
     override fun draw()
     {
-        background(0xff000000.toInt())
+        background(0xfff2f2f6.toInt())
 
         noStroke()
-        fill(255)
-        stroke(0)
-        polygons.forEach { it.draw() }
+        polygons.forEach {
+            fill(palette[random(palette.size.toFloat()).toInt()])
+            it.draw()
+        }
 
         if (isSave)
         {
@@ -69,7 +69,9 @@ class S20250625b : PApplet()
                 random(regionMin.x, regionMax.x),
                 random(regionMin.y, regionMax.y),
             )
-            val r = sq(random(1.0f)) * min(regionMax.x - regionMin.x, regionMax.y - regionMin.y) * 0.15f
+            var rand = 0.0f
+            while (rand < 0.1f) { rand = random(1.0f) }
+            val r = easeInPolynomial(rand, 2.0f) * min(regionMax.x - regionMin.x, regionMax.y - regionMin.y) * 0.15f
             val n = random(3.0f, 10.0f).toInt()
             val polygon = Polygon(c, r, n)
             if (polygons.none { it.isOverlapped(polygon) })
