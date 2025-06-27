@@ -7,7 +7,7 @@ import util.*
 class S20250625b : PApplet()
 {
     private val palette = createPalette("001219-005f73-0a9396-94d2bd-e9d8a6-ee9b00-ca6702-bb3e03-ae2012-9b2226")
-    private val polygons = mutableListOf<Polygon>()
+    private val polygons3D = mutableListOf<Polygon3D>()
     private var aspect = 0.0f
     private val far = 100.0f
     private val isSave = false
@@ -40,8 +40,9 @@ class S20250625b : PApplet()
     {
         background(0xfff2f2f6.toInt())
 
-        noStroke()
-        polygons.forEach {
+//        noStroke()
+        stroke(0xff000000.toInt())
+        polygons3D.forEach {
             fill(palette[random(palette.size.toFloat()).toInt()])
             it.draw()
         }
@@ -54,14 +55,22 @@ class S20250625b : PApplet()
 
     private fun init()
     {
-        polygons.clear()
-        while (addPolygon(100, PVector(-aspect, -1.0f), PVector(aspect, 1.0f)))
+        val polygons = ArrayDeque<Polygon>()
+        while (addPolygon(polygons, 200, PVector(-aspect, -1.0f), PVector(aspect, 1.0f)))
         {
             // none
         }
+
+        // convert to 3D
+        polygons3D.clear()
+        while (polygons.isNotEmpty())
+        {
+            val polygon = polygons.removeFirst()
+            polygons3D.add(Polygon3D(polygon, 0.1f))
+        }
     }
 
-    private fun addPolygon(triableItr: Int, regionMin: PVector, regionMax: PVector): Boolean
+    private fun addPolygon(polygons: MutableCollection<Polygon>, triableItr: Int, regionMin: PVector, regionMax: PVector): Boolean
     {
         repeat(triableItr)
         {
@@ -69,9 +78,9 @@ class S20250625b : PApplet()
                 random(regionMin.x, regionMax.x),
                 random(regionMin.y, regionMax.y),
             )
-            var rand = 0.0f
-            while (rand < 0.1f) { rand = random(1.0f) }
-            val r = easeInPolynomial(rand, 2.0f) * min(regionMax.x - regionMin.x, regionMax.y - regionMin.y) * 0.15f
+            var rand = 1.0f
+            while (rand > 0.95f) { rand = random(1.0f) }
+            val r = (1.0f - pow(rand, 0.36f)) * min(regionMax.x - regionMin.x, regionMax.y - regionMin.y) * 0.15f
             val n = random(3.0f, 10.0f).toInt()
             val polygon = Polygon(c, r, n)
             if (polygons.none { it.isOverlapped(polygon) })
@@ -116,6 +125,15 @@ class S20250625b : PApplet()
                 vertices.add(vertex)
             }
         }
+
+        constructor(vertices: Collection<PVector>)
+        {
+            this.center = vertices.asSequence().reduce { v0, v1 -> PVector.add(v0, v1) } / vertices.size.toFloat()
+            this.radius = sqrt(vertices.asSequence().map { v -> PVector.sub(v, center).magSq() }.max())
+            this.vertices.addAll(vertices)
+        }
+
+        fun getVertices(): List<PVector> = vertices.toList()
 
         fun draw()
         {
@@ -180,6 +198,37 @@ class S20250625b : PApplet()
                 }
             }
             return false
+        }
+    }
+
+    private inner class Polygon3D(bottomFace: Polygon, height: Float)
+    {
+        private val surfaces = mutableListOf<Polygon>()
+
+        init
+        {
+            val vertices = bottomFace.getVertices()
+            val hv = PVector(0.0f, 0.0f, height)
+
+            // bottom
+            surfaces.add(bottomFace)
+
+            // top
+            surfaces.add(Polygon(vertices.asSequence().map { v -> PVector.add(v, hv) }.toList()))
+
+            // side
+            vertices.forEachIndexed { idx, vertex ->
+                val v0 = vertex.copy()
+                val v1 = vertices[(idx + 1) % vertices.size].copy()
+                val v2 = PVector.add(v1, hv)
+                val v3 = PVector.add(v0, hv)
+                surfaces.add(Polygon(listOf(v0, v1, v2, v3)))
+            }
+        }
+
+        fun draw()
+        {
+            surfaces.forEach { polygon -> polygon.draw() }
         }
     }
 }
