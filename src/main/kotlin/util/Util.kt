@@ -6,6 +6,8 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import kotlin.reflect.KClass
 import processing.core.PApplet.*
+import processing.core.PMatrix3D
+import processing.core.PVector
 
 fun timestamp(format: String): String
 {
@@ -30,3 +32,11 @@ fun easeOutPolynomial(x: Float, d: Float): Float = 1.0f - pow(1.0f - x, d)
 
 fun easeInOutPolynomial(x: Float, d: Float): Float =
     if (x < 0.5f) 0.5f * pow(2.0f * x, d) else 1.0f - 0.5f * pow(2.0f * (1.0f - x), d)
+
+fun viewToWorld(v: PVector, viewMat: PMatrix3D): PVector
+{
+    val side = PVector(viewMat.m00, viewMat.m10, viewMat.m20)
+    val up = PVector(viewMat.m01, viewMat.m11, viewMat.m21)
+    val forward = PVector(viewMat.m02, viewMat.m12, viewMat.m22)
+    return PVector.mult(side, v.x).add(PVector.mult(up, v.y)).add(PVector.mult(forward, v.z)).normalize()
+}
