@@ -2,14 +2,22 @@ package sketches
 
 import processing.core.PApplet
 import processing.core.PVector
+import processing.opengl.PGraphicsOpenGL
+import processing.opengl.PShader
 import util.*
 
 class S20250625b : PApplet()
 {
     private val palette = createPalette("001219-005f73-0a9396-94d2bd-e9d8a6-ee9b00-ca6702-bb3e03-ae2012-9b2226")
     private val polygons3D = mutableListOf<Polygon3D>()
+    private val eye = PVector(0.0f, -0.5f, 1.0f)
+    private val center = PVector(0.0f, 0.0f, 0.0f)
+    private val fov = HALF_PI
     private var aspect = 0.0f
-    private val far = 100.0f
+    private val far = 4.0f
+    private val fogColor = 0xff121216.toInt()
+    private val heightFogColor = 0x00f2f2f8.toInt()
+    private var shader: PShader? = null
     private val isSave = false
 
     override fun settings()
@@ -29,21 +37,29 @@ class S20250625b : PApplet()
     override fun setup()
     {
         this.aspect = width.toFloat() / height.toFloat()
-        val fov: Float = HALF_PI
         perspective(fov, aspect, 0.1f, far)
-        camera(0.0f, 0.0f, 1.0f / tan(fov / 2.0f), 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f)
+        camera(eye.x, eye.y, eye.z, center.x, center.y, center.z, 0.0f, 1.0f, 0.0f)
+
+        shader = loadShader(
+            this::class.java.classLoader.getResource("shaders/fog.frag")?.path,
+            this::class.java.classLoader.getResource("shaders/fog.vert")?.path)
+        shader?.set("fogColor", red(fogColor) / 255.0f, green(fogColor) / 255.0f, blue(fogColor) / 255.0f)
+        shader?.set("fogRange", far * 0.2f, far)
+
         init()
         noLoop()
     }
 
     override fun draw()
     {
-        background(0xfff2f2f6.toInt())
+        background(fogColor)
 
-//        noStroke()
-        stroke(0xff000000.toInt())
+        shader(shader)
+        strokeWeight(0.5f)
+        stroke(fogColor)
         polygons3D.forEach {
-            fill(palette[random(palette.size.toFloat()).toInt()])
+            val col = palette[random(palette.size.toFloat()).toInt()]
+            fill(col)
             it.draw()
         }
 
@@ -55,34 +71,40 @@ class S20250625b : PApplet()
 
     private fun init()
     {
-        val polygons = ArrayDeque<Polygon>()
-        while (addPolygon(polygons, 200, PVector(-aspect, -1.0f), PVector(aspect, 1.0f)))
+        val polygons = ArrayDeque<RegularPolygon>()
+        while (addPolygon(polygons, 200))
         {
             // none
         }
 
         // convert to 3D
+        val minDepth = polygons.asSequence().map { it.getCenter().y }.min()
+        val maxDepth = polygons.asSequence().map { it.getCenter().y }.max()
         polygons3D.clear()
         while (polygons.isNotEmpty())
         {
             val polygon = polygons.removeFirst()
-            polygons3D.add(Polygon3D(polygon, 0.1f))
+            val c = polygon.getCenter()
+            val r = random(1.0f) + 0.5f
+            val g = abs(randomGaussian())
+            val s = easeInPolynomial((c.y - maxDepth) / (minDepth - maxDepth), 2.0f)
+            val h = g * 0.04f + r * 0.2f
+            val off = g * s
+            polygons3D.add(Polygon3D(polygon, h, off))
         }
     }
 
-    private fun addPolygon(polygons: MutableCollection<Polygon>, triableItr: Int, regionMin: PVector, regionMax: PVector): Boolean
+    private fun addPolygon(polygons: MutableCollection<RegularPolygon>, triableItr: Int): Boolean
     {
         repeat(triableItr)
         {
-            val c = PVector(
-                random(regionMin.x, regionMax.x),
-                random(regionMin.y, regionMax.y),
-            )
+            val p = getRandomPointInY0Plane()
+            val c = PVector(p.x, p.z, 0.0f)
             var rand = 1.0f
-            while (rand > 0.95f) { rand = random(1.0f) }
-            val r = (1.0f - pow(rand, 0.36f)) * min(regionMax.x - regionMin.x, regionMax.y - regionMin.y) * 0.15f
+            while (rand > 0.9f) { rand = random(1.0f) }
+            val r = (1.0f - pow(rand, 0.36f)) * 0.13f
             val n = random(3.0f, 10.0f).toInt()
-            val polygon = Polygon(c, r, n)
+            val polygon = RegularPolygon(c, r, n)
             if (polygons.none { it.isOverlapped(polygon) })
             {
                 polygons.add(polygon)
@@ -90,6 +112,36 @@ class S20250625b : PApplet()
             }
         }
         return false
+    }
+
+    private fun getRandomPointInY0Plane(): PVector
+    {
+        val y = tan(fov * 0.5f)
+        val cdir = PVector(
+            random(-1.0f, 1.0f) * y * aspect,
+            random(-1.0f, 1.0f) * y,
+            -random(1.0f),
+        ).normalize()
+        return intersectY0Plane(cdir)
+    }
+
+    private fun intersectY0Plane(cdir: PVector): PVector
+    {
+        pushMatrix()
+        camera(eye.x, eye.y, eye.z, center.x, center.y, center.z, 0.0f, -1.0f, 0.0f)
+        val viewMat = (g as PGraphicsOpenGL).camera.get()
+        popMatrix()
+
+        val dir = viewToWorld(cdir, viewMat)
+        var t = -eye.y / dir.y
+        val maxT = far
+        if (abs(dir.y) < 1e-4f || t < 0.0f || t > maxT)
+        {
+            t = maxT
+        }
+        val ret = PVector.mult(dir, t).add(eye)
+        ret.y = 0.0f
+        return ret
     }
 
     override fun keyPressed()
@@ -105,7 +157,7 @@ class S20250625b : PApplet()
         redraw()
     }
 
-    private inner class Polygon
+    private inner class RegularPolygon
     {
         private val center: PVector
         private val radius: Float
@@ -126,23 +178,20 @@ class S20250625b : PApplet()
             }
         }
 
-        constructor(vertices: Collection<PVector>)
-        {
-            this.center = vertices.asSequence().reduce { v0, v1 -> PVector.add(v0, v1) } / vertices.size.toFloat()
-            this.radius = sqrt(vertices.asSequence().map { v -> PVector.sub(v, center).magSq() }.max())
-            this.vertices.addAll(vertices)
-        }
+        fun getCenter(): PVector = center.copy()
+
+        fun getRadius(): Float = radius
 
         fun getVertices(): List<PVector> = vertices.toList()
 
         fun draw()
         {
             beginShape()
-            vertices.forEach { vertex -> vertex(vertex.x, vertex.y, vertex.z) }
+            vertices.forEach { vertex(it.x, it.y, it.z) }
             endShape(CLOSE)
         }
 
-        private fun pointInside(point: PVector, polygon: Polygon): Boolean
+        private fun pointInside(point: PVector, polygon: RegularPolygon): Boolean
         {
             val vertices = polygon.vertices
             return vertices.indices.count { i ->
@@ -167,7 +216,7 @@ class S20250625b : PApplet()
             return s * t < 0.0f
         }
 
-        fun isOverlapped(other: Polygon): Boolean
+        fun isOverlapped(other: RegularPolygon): Boolean
         {
             val d2 = PVector.sub(center, other.center).magSq()
             if (d2 > sq(radius + other.radius))
@@ -201,34 +250,63 @@ class S20250625b : PApplet()
         }
     }
 
-    private inner class Polygon3D(bottomFace: Polygon, height: Float)
+    data class Attribute(val vertex: PVector, val color: Int)
+
+    private inner class AttribPolygon(attributes: Collection<Attribute>)
     {
-        private val surfaces = mutableListOf<Polygon>()
+        private val attributes = mutableListOf<Attribute>()
+
+        init
+        {
+            this.attributes.addAll(attributes)
+        }
+
+        fun draw()
+        {
+            beginShape()
+            attributes.forEach {
+                fill(it.color)
+                vertex(it.vertex.x, it.vertex.y, it.vertex.z)
+            }
+            endShape(CLOSE)
+        }
+    }
+
+    private inner class Polygon3D(bottomFace: RegularPolygon, height: Float, yOffset: Float)
+    {
+        private val surfaces = mutableListOf<AttribPolygon>()
 
         init
         {
             val vertices = bottomFace.getVertices()
-            val hv = PVector(0.0f, 0.0f, height)
-
-            // bottom
-            surfaces.add(bottomFace)
+            val hv = PVector(0.0f, -height, 0.0f)
+            val col = palette[random(palette.size.toFloat()).toInt()]
 
             // top
-            surfaces.add(Polygon(vertices.asSequence().map { v -> PVector.add(v, hv) }.toList()))
+            surfaces.add(AttribPolygon(vertices.asSequence()
+                .map { Attribute(PVector(it.x, -yOffset * 1.3f, it.y).add(hv), col) }
+                .toList())
+            )
 
             // side
-            vertices.forEachIndexed { idx, vertex ->
-                val v0 = vertex.copy()
-                val v1 = vertices[(idx + 1) % vertices.size].copy()
+            vertices.forEachIndexed { idx, v ->
+                val nv = vertices[(idx + 1) % vertices.size]
+                val v0 = PVector(v.x, -yOffset, v.y)
+                val v1 = PVector(nv.x, -yOffset, nv.y)
                 val v2 = PVector.add(v1, hv)
                 val v3 = PVector.add(v0, hv)
-                surfaces.add(Polygon(listOf(v0, v1, v2, v3)))
+                surfaces.add(AttribPolygon(listOf(
+                    Attribute(v0, heightFogColor),
+                    Attribute(v1, heightFogColor),
+                    Attribute(v2, col),
+                    Attribute(v3, col),
+                )))
             }
         }
 
         fun draw()
         {
-            surfaces.forEach { polygon -> polygon.draw() }
+            surfaces.forEach { it.draw() }
         }
     }
 }
