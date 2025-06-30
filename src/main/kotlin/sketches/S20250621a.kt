@@ -1,34 +1,15 @@
 package sketches
 
-import processing.core.PApplet
 import processing.core.PGraphics
-import util.*
 
-class S20250621a : PApplet()
+class S20250621a : ExtendedPApplet(P2D)
 {
     private val far = 100.0f
-    private var aspect = 0.0f
     private val palette = createPalette("ae8b70-fa81cd-664864-efefef-9c3f26-c4c7bf-87a0ad-89d6c3-384a4d-77b764")
     private var pg: PGraphics? = null
-    private val isSave = false
-
-    override fun settings()
-    {
-        if (isSave)
-        { // 4K
-            size(1920, 1080, P2D)
-            pixelDensity(2)
-        }
-        else
-        {
-            size(1280, 720, P2D)
-            pixelDensity(1)
-        }
-    }
 
     override fun setup()
     {
-        this.aspect = width.toFloat() / height.toFloat()
         val fov: Float = HALF_PI
 
         pg = createGraphics(width, height, P3D)
@@ -142,10 +123,7 @@ class S20250621a : PApplet()
 
     override fun keyPressed()
     {
-        if (key == ESC)
-        {
-            return
-        }
+        super.keyPressed()
         val seed = System.currentTimeMillis()
         noiseSeed(seed)
         randomSeed(seed)

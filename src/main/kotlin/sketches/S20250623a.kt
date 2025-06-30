@@ -1,33 +1,14 @@
 package sketches
 
-import processing.core.PApplet
 import processing.core.PGraphics
 import processing.core.PVector
-import util.clamp
-import util.createPalette
-import util.saveName
 import kotlin.repeat
 
-class S20250623a : PApplet()
+class S20250623a : ExtendedPApplet(P2D)
 {
     private val palette = createPalette("d3cfdf-5db1b8-650f24-b10b24-1d38ac-0a1534-3a5431-bdb28d-2e140a-689578")
     private val numFillers = 6
     private var pixelFillers: MutableList<PixelFiller> = mutableListOf()
-    private val isSave = false
-
-    override fun settings()
-    {
-        if (isSave)
-        { // 4K
-            size(1920, 1080, P2D)
-            pixelDensity(2)
-        }
-        else
-        {
-            size(1280, 720, P2D)
-            pixelDensity(1)
-        }
-    }
 
     override fun setup()
     {
@@ -68,10 +49,7 @@ class S20250623a : PApplet()
 
     override fun keyPressed()
     {
-        if (key == ESC)
-        {
-            return
-        }
+        super.keyPressed()
         redraw()
     }
 
