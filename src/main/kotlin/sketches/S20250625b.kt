@@ -1,42 +1,22 @@
 package sketches
 
-import processing.core.PApplet
 import processing.core.PVector
-import processing.opengl.PGraphicsOpenGL
 import processing.opengl.PShader
-import util.*
 
-class S20250625b : PApplet()
+class S20250625b : ExtendedPApplet(P3D)
 {
     private val palette = createPalette("001219-005f73-0a9396-94d2bd-e9d8a6-ee9b00-ca6702-bb3e03-ae2012-9b2226")
     private val polygons3D = mutableListOf<Polygon3D>()
     private val eye = PVector(0.0f, -0.5f, 1.0f)
     private val center = PVector(0.0f, 0.0f, 0.0f)
     private val fov = HALF_PI
-    private var aspect = 0.0f
     private val far = 4.0f
     private val fogColor = 0xff121216.toInt()
     private val heightFogColor = 0x00f2f2f8.toInt()
     private var shader: PShader? = null
-    private val isSave = false
-
-    override fun settings()
-    {
-        if (isSave)
-        { // 4K
-            size(1920, 1080, P3D)
-            pixelDensity(2)
-        }
-        else
-        {
-            size(1280, 720, P3D)
-            pixelDensity(1)
-        }
-    }
 
     override fun setup()
     {
-        this.aspect = width.toFloat() / height.toFloat()
         perspective(fov, aspect, 0.1f, far)
         camera(eye.x, eye.y, eye.z, center.x, center.y, center.z, 0.0f, 1.0f, 0.0f)
 
@@ -127,12 +107,7 @@ class S20250625b : PApplet()
 
     private fun intersectY0Plane(cdir: PVector): PVector
     {
-        pushMatrix()
-        camera(eye.x, eye.y, eye.z, center.x, center.y, center.z, 0.0f, -1.0f, 0.0f)
-        val viewMat = (g as PGraphicsOpenGL).camera.get()
-        popMatrix()
-
-        val dir = viewToWorld(cdir, viewMat)
+        val dir = viewToWorld(cdir)
         var t = -eye.y / dir.y
         val maxT = far
         if (abs(dir.y) < 1e-4f || t < 0.0f || t > maxT)
@@ -146,10 +121,7 @@ class S20250625b : PApplet()
 
     override fun keyPressed()
     {
-        if (key == ESC)
-        {
-            return
-        }
+        super.keyPressed()
         val seed = System.currentTimeMillis()
         noiseSeed(seed)
         randomSeed(seed)

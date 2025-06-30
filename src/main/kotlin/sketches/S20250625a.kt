@@ -1,32 +1,14 @@
 package sketches
 
-import processing.core.PApplet
 import processing.core.PGraphics
 import processing.core.PImage
-import util.*
 
-class S20250625a : PApplet()
+class S20250625a : ExtendedPApplet(P3D)
 {
     private val palette = createPalette("d3cfdf-5db1b8-650f24-b10b24-1d38ac-0a1534-3a5431-bdb28d-2e140a-689578")
     private val textures = mutableListOf<PGraphics>()
     private val numKindTextures = 16
     private val far = 100.0f
-    private var aspect = 0.0f
-    private val isSave = true
-
-    override fun settings()
-    {
-        if (isSave)
-        { // 4K
-            size(1920, 1080, P3D)
-            pixelDensity(2)
-        }
-        else
-        {
-            size(1280, 720, P3D)
-            pixelDensity(1)
-        }
-    }
 
     override fun setup()
     {
@@ -48,7 +30,6 @@ class S20250625a : PApplet()
             textures.add(pg)
         }
 
-        this.aspect = width.toFloat() / height.toFloat()
         ortho(-aspect, aspect, -1.0f, 1.0f, 0.0f, far)
         camera(0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f)
 
@@ -181,10 +162,7 @@ class S20250625a : PApplet()
 
     override fun keyPressed()
     {
-        if (key == ESC)
-        {
-            return
-        }
+        super.keyPressed()
         val seed = System.currentTimeMillis()
         noiseSeed(seed)
         randomSeed(seed)
