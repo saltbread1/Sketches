@@ -3,7 +3,7 @@ package mesh
 /**
  * Represents a directed edge in a half-edge mesh structure.
  *
- * @property vertex   Index of the vertex at the origin of this half-edge.
+ * @property vertex   Index of the vertex at the end of this half-edge.
  * @property face     Index of the face associated with this half-edge.
  * @property next     Reference to the next half-edge in the loop of the face.
  * @property prev     Reference to the previous half-edge in the loop of the face.

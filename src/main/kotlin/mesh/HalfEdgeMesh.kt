@@ -6,6 +6,7 @@ class HalfEdgeMesh(meshData: MeshData)
     private val faces = mutableListOf<Face>()
     private val halfEdges = mutableListOf<HalfEdge>()
 
+    // key: (origin, end)
     private val edgeToHalfEdge: MutableMap<Pair<Int, Int>, HalfEdge> = mutableMapOf()
 
     init
@@ -16,9 +17,9 @@ class HalfEdgeMesh(meshData: MeshData)
         // create half-edges
         meshData.getFaces().forEachIndexed { face, (v0, v1, v2) ->
             // create half-edges
-            val e0 = HalfEdge(v0, face, null, null, null)
-            val e1 = HalfEdge(v1, face, null, null, null)
-            val e2 = HalfEdge(v2, face, null, null, null)
+            val e0 = HalfEdge(v1, face, null, null, null)
+            val e1 = HalfEdge(v2, face, null, null, null)
+            val e2 = HalfEdge(v0, face, null, null, null)
 
             // set next and prev edges
             e0.next = e1
@@ -49,27 +50,34 @@ class HalfEdgeMesh(meshData: MeshData)
 
         // set opposite half-edges
         edgeToHalfEdge.forEach { (key, edge) ->
-            edge.opposite = edgeToHalfEdge[Pair(key.second, key.first)]
+            val reverseKey = Pair(key.second, key.first)
+            edge.opposite = edgeToHalfEdge[reverseKey]
+
             if (edge.opposite == null)
             {
                 // create and add boundary edge
-                val e = HalfEdge(key.second, -1, null, null, edge)
-                halfEdges.add(e)
-                edgeToHalfEdge[Pair(key.second, key.first)] = e
+                val boundaryEdge = HalfEdge(key.first, -1, null, null, edge)
+                halfEdges.add(boundaryEdge)
+                edgeToHalfEdge[reverseKey] = boundaryEdge
 
                 // set the new edge as an opposite edge
-                edge.opposite = e
+                edge.opposite = boundaryEdge
 
                 // update outgoing edges of vertices to its directions toward the boundary
-                vertices[key.second].outgoing = e
+                vertices[key.second].outgoing = boundaryEdge
             }
         }
 
         // configure boundary edges
-        val boundaryEdges = halfEdges.asSequence().filter { it.face == -1 }.toList()
+        val boundaryEdges = halfEdges.filter { it.face == -1 }.toList()
         boundaryEdges.forEach { e ->
-            e.next = boundaryEdges.asSequence().find { it != e && it.vertex == e.opposite?.vertex }
-            e.prev = boundaryEdges.asSequence().find { it != e && it.opposite?.vertex == e.vertex }
+            e.next = boundaryEdges.asSequence().find { it != e && it.opposite?.vertex == e.vertex }
+            e.prev = boundaryEdges.asSequence().find { it != e && it.vertex == e.opposite?.vertex }
         }
     }
+
+    fun isBoundaryEdge(edge: HalfEdge): Boolean = edge.face == -1
+
+    fun isInnerEdge(edge: HalfEdge): Boolean = edge.face != -1
+
 }
