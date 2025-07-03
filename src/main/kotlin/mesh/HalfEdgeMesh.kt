@@ -1,6 +1,8 @@
 package mesh
 
 import processing.core.PVector
+import kotlin.math.max
+import kotlin.math.min
 
 class HalfEdgeMesh()
 {
@@ -8,11 +10,11 @@ class HalfEdgeMesh()
     private val faces = mutableListOf<Face>()
     private val halfEdges = mutableListOf<HalfEdge>()
 
-    // key: (origin, end)
-    private val edgeToHalfEdge: MutableMap<Pair<Int, Int>, HalfEdge> = mutableMapOf()
-
     fun buildMesh(meshData: MeshData)
     {
+        // key: (origin, end)
+        val edgeToHalfEdge: MutableMap<Pair<Int, Int>, HalfEdge> = mutableMapOf()
+
         // initial vertices
         vertices.addAll(meshData.getVertices().asSequence().map { Vertex(it.copy(), null) })
 
@@ -77,6 +79,12 @@ class HalfEdgeMesh()
             e.prev = boundaryEdges.asSequence().find { it != e && it.vertex == e.opposite?.vertex }
         }
     }
+
+    fun getVertices() = vertices.toList()
+
+    fun getFaces() = faces.toList()
+
+    fun getHalfEdges() = halfEdges.toList()
 
     /**
      * Get adjacent vertices of the specified vertex.
@@ -168,7 +176,7 @@ class HalfEdgeMesh()
 
     fun getFaceCount() = faces.size
 
-    fun getEdgeCount() = halfEdges.count { it.face >= 0 } / 2
+    fun getEdgeCount() = halfEdges.size / 2
 
     fun getVertexPosition(vertex: Int): PVector?
     {
@@ -202,10 +210,47 @@ class HalfEdgeMesh()
 
     fun isBoundaryEdge(edge: HalfEdge): Boolean = edge.face == -1
 
+    fun getSpecifiedHalfEdge(sourceVertex: Int, targetVertex: Int): HalfEdge?
+    {
+        return halfEdges.find { it.vertex == targetVertex && it.opposite?.vertex == sourceVertex }
+    }
+
+    fun getUniqueHalfEdges(): List<HalfEdge>
+    {
+        val uniqueEdges = mutableListOf<HalfEdge>()
+        val processedEdges = mutableSetOf<Pair<Int, Int>>()
+
+        for (halfEdge in halfEdges)
+        {
+            val opposite = halfEdge.opposite ?: continue
+            val sourceVertex = opposite.vertex
+            val targetVertex = halfEdge.vertex
+
+            // get a normalized edge key
+            val edgeKey = Pair(min(sourceVertex, targetVertex), max(sourceVertex, targetVertex))
+
+            // already have not processed
+            if (edgeKey !in processedEdges)
+            {
+                // choose the half-edge begun to smaller vertex index
+                val canonicalHalfEdge = if (sourceVertex < targetVertex) halfEdge else opposite
+
+                uniqueEdges.add(canonicalHalfEdge)
+                processedEdges.add(edgeKey)
+            }
+        }
+
+        return uniqueEdges
+    }
+
     /**
-     * Insert a new vertex and split the specified edge.
+     * Insert a new vertex to the specified edge.
+     * Three edges and two faces will be created and added to the mesh.
+     *
+     * Ex. A-->B is the specified edge and each edge constructs CCW faces:
      *
      * Before split:
+     * ```
      *     C
      *    / \
      *   /   \
@@ -215,8 +260,10 @@ class HalfEdgeMesh()
      *   \   /
      *    \ /
      *     D
+     *```
      *
      * After split:
+     * ```
      *     C
      *    /|\
      *   / | \
@@ -226,31 +273,37 @@ class HalfEdgeMesh()
      *   \ | /
      *    \|/
      *     D
+     * ```
      */
-    fun splitEdge(edge: HalfEdge, position: PVector)
+    fun splitEdge(edge: HalfEdge, position: PVector): Boolean
     {
-        val edgeOpp = edge.opposite!!
-        val edgeNext = edge.next!!
-        val edgePrev = edge.prev!!
-        val edgeOppNext = edgeOpp.next!!
-        val edgeOppPrev = edgeOpp.prev!!
+        val edgeOpp = edge.opposite ?: return false// B -> A
+        val edgeNext = edge.next ?: return false // B -> C
+        val edgePrev = edge.prev ?: return false // C -> A
+        val edgeOppNext = edgeOpp.next ?: return false // A -> D
+        val edgeOppPrev = edgeOpp.prev ?: return false // D -> B
+
+        val va = edgeOpp.vertex
+        val vb = edge.vertex
+        val vc = edgeNext.vertex
+        val vd = edgeOppNext.vertex
 
         // add a new vertex
         vertices.add(Vertex(position.copy(), null))
-        val newVertex = vertices.lastIndex
+        val vn = vertices.lastIndex
 
         // create new edges (set only vertices)
-        val newEdge0 = HalfEdge(edge.vertex, -1, null, null, null) // NB
-        val newEdgeOpp0 = HalfEdge(edgeOpp.vertex, -1, null, null, null) // NA
-        val newEdge1 = HalfEdge(newVertex, -1, null, null, null) // CN
-        val newEdgeOpp1 = HalfEdge(edgeNext.vertex, -1, null, null, null) // NC
-        val newEdge2 = HalfEdge(newVertex, -1, null, null, null) // DN
-        val newEdgeOpp2 = HalfEdge(edgeOppNext.vertex, -1, null, null, null) // ND
+        val newEdge0 = HalfEdge(vb, -1, null, null, null) // NB
+        val newEdgeOpp0 = HalfEdge(va, -1, null, null, null) // NA
+        val newEdge1 = HalfEdge(vn, -1, null, null, null) // CN
+        val newEdgeOpp1 = HalfEdge(vc, -1, null, null, null) // NC
+        val newEdge2 = HalfEdge(vn, -1, null, null, null) // DN
+        val newEdgeOpp2 = HalfEdge(vd, -1, null, null, null) // ND
 
-        edge.vertex = newVertex
+        edge.vertex = vn
 
         // set outgoing
-        vertices[newVertex].outgoing = newEdge0
+        vertices[vn].outgoing = newEdge0
 
         // add new faces and set to new edges
         val newFace0 = if (edge.face >= 0)
@@ -312,6 +365,17 @@ class HalfEdgeMesh()
         halfEdges.add(newEdgeOpp1)
         halfEdges.add(newEdge2)
         halfEdges.add(newEdgeOpp2)
+
+        return true
+    }
+
+    /**
+     * Split the edge specified by its vertices.
+     */
+    fun splitEdge(sourceVertex: Int, targetVertex: Int, position: PVector): Boolean
+    {
+        val edge = getSpecifiedHalfEdge(sourceVertex, targetVertex) ?: return false
+        return splitEdge(edge, position)
     }
 
     /**

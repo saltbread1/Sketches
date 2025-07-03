@@ -5,4 +5,4 @@ package mesh
  *
  * @property halfEdge A reference to one of the directed half-edges defining this face.
  */
-data class Face(var halfEdge: HalfEdge)
+data class Face(val halfEdge: HalfEdge)
