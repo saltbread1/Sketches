@@ -80,11 +80,56 @@ class HalfEdgeMesh()
         }
     }
 
-    fun getVertices() = vertices.toList()
+    fun getVertexCount() = vertices.size
 
-    fun getFaces() = faces.toList()
+    fun getFaceCount() = faces.size
 
-    fun getHalfEdges() = halfEdges.toList()
+    /**
+     * Get the number of half-edges **INCLUDING BOUNDARY**.
+     */
+    fun getAllHalfEdgeCount() = halfEdges.size
+
+    /**
+     * Get the number of half-edges **EXCLUDING BOUNDARY**.
+     */
+    fun getHalfEdgeCount() = halfEdges.count { it.face >= 0 }
+
+    /**
+     * Get the number of unique edges.
+     */
+    fun getEdgeCount() = getUniqueHalfEdges().size
+
+    fun getVertexPosition(vertex: Int): PVector?
+    {
+        return vertices.getOrNull(vertex)?.position?.copy()
+    }
+
+    fun setVertexPosition(vertex: Int, position: PVector): Boolean
+    {
+        return if (vertex in vertices.indices)
+        {
+            vertices[vertex].position = position
+            true
+        }
+        else false
+    }
+
+    fun isBoundaryVertex(vertex: Int): Boolean
+    {
+        val start = vertices.getOrNull(vertex)?.outgoing ?: return false
+        var current: HalfEdge? = start
+
+        do
+        {
+            if (current?.face == -1) return true
+            current = current?.opposite?.next
+        }
+        while (current != null && current != start)
+
+        return false
+    }
+
+    fun isBoundaryEdge(edge: HalfEdge): Boolean = edge.face == -1
 
     /**
      * Get adjacent vertices of the specified vertex.
@@ -172,44 +217,6 @@ class HalfEdgeMesh()
         return result
     }
 
-    fun getVertexCount() = vertices.size
-
-    fun getFaceCount() = faces.size
-
-    fun getEdgeCount() = halfEdges.size / 2
-
-    fun getVertexPosition(vertex: Int): PVector?
-    {
-        return vertices.getOrNull(vertex)?.position
-    }
-
-    fun setVertexPosition(vertex: Int, position: PVector): Boolean
-    {
-        return if (vertex in vertices.indices)
-        {
-            vertices[vertex].position = position
-            true
-        }
-        else false
-    }
-
-    fun isBoundaryVertex(vertex: Int): Boolean
-    {
-        val start = vertices.getOrNull(vertex)?.outgoing ?: return false
-        var current: HalfEdge? = start
-
-        do
-        {
-            if (current?.face == -1) return true
-            current = current?.opposite?.next
-        }
-        while (current != null && current != start)
-
-        return false
-    }
-
-    fun isBoundaryEdge(edge: HalfEdge): Boolean = edge.face == -1
-
     fun getSpecifiedHalfEdge(sourceVertex: Int, targetVertex: Int): HalfEdge?
     {
         return halfEdges.find { it.vertex == targetVertex && it.opposite?.vertex == sourceVertex }
@@ -241,6 +248,28 @@ class HalfEdgeMesh()
         }
 
         return uniqueEdges
+    }
+
+    fun forEachVertex(action: (vertex: Int, position: PVector) -> Unit)
+    {
+        vertices.forEachIndexed { index, vertex ->
+            action(index, vertex.position.copy())
+        }
+    }
+
+    fun forEachFace(action: (face: Int, vertices: List<Int>) -> Unit)
+    {
+        faces.forEachIndexed { index, _ ->
+            action(index, getFaceVertices(index))
+        }
+    }
+
+    fun forEachEdge(action: (sourceVertex: Int, targetVertex: Int) -> Unit)
+    {
+        val edges = getUniqueHalfEdges()
+        edges.forEach { edge ->
+            action(edge.opposite?.vertex ?: return@forEach, edge.vertex)
+        }
     }
 
     /**
