@@ -18,14 +18,14 @@ class HalfEdgeMeshTest
     private fun createPlaneMesh(): SimpleMeshData
     {
         val vertices = listOf(
-            PVector(0f, 0f, 0f),    // 0
-            PVector(1f, 0f, 0f),    // 1
-            PVector(1f, 1f, 0f),    // 2
-            PVector(0f, 1f, 0f)     // 3
+            PVector(0f, 0f, 0f),
+            PVector(1f, 0f, 0f),
+            PVector(1f, 1f, 0f),
+            PVector(0f, 1f, 0f),
         )
         val faces = listOf(
             Triple(0, 1, 2),
-            Triple(0, 2, 3)
+            Triple(0, 2, 3),
         )
         return SimpleMeshData(vertices, faces)
     }
@@ -33,16 +33,16 @@ class HalfEdgeMeshTest
     private fun createTetrahedronMesh(): SimpleMeshData
     {
         val vertices = listOf(
-            PVector(0f, 0f, 0f),         // 0
-            PVector(1f, 0f, 0f),         // 1
-            PVector(0.5f, 1f, 0f),       // 2
-            PVector(0.5f, 0.5f, 1f)      // 3
+            PVector(0f, 0f, 0f),
+            PVector(1f, 0f, 0f),
+            PVector(0.5f, 1f, 0f),
+            PVector(0.5f, 0.5f, 1f),
         )
         val faces = listOf(
             Triple(0, 1, 2),
             Triple(0, 2, 3),
             Triple(0, 3, 1),
-            Triple(1, 3, 2)
+            Triple(1, 3, 2),
         )
         return SimpleMeshData(vertices, faces)
     }
@@ -123,7 +123,7 @@ class HalfEdgeMeshTest
         assertTrue(adjacentTo0.contains(2))
         assertTrue(adjacentTo0.contains(3))
         assertEquals(3, adjacentTo0.size, "Vertex 0 should have exactly 3 adjacent vertices but got: $adjacentTo0")
-        
+
         val adjacentTo2 = mesh.getAdjacentVertices(2)
         assertTrue(adjacentTo2.contains(0))
         assertTrue(adjacentTo2.contains(1))
@@ -293,5 +293,4 @@ class HalfEdgeMeshTest
         }
         assertEquals(5, edgeCount)
     }
-
 }
