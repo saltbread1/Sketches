@@ -22,6 +22,8 @@ dependencies {
 
     // native window
     runtimeOnly("org.jogamp.jogl:nativewindow-main:2.5.0")
+
+    testImplementation(kotlin("test"))
 }
 
 kotlin {
@@ -30,4 +32,11 @@ kotlin {
 
 application {
     mainClass.set("MainKt")
+}
+
+tasks.register<JavaExec>("runHalfEdgeMeshTest") {
+    group = "application"
+    description = "Run HalfEdgeMesh test"
+    classpath = sourceSets["test"].runtimeClasspath
+    mainClass.set("mesh.HalfEdgeMeshTestKt")
 }
