@@ -34,9 +34,11 @@ application {
     mainClass.set("MainKt")
 }
 
-tasks.register<JavaExec>("runHalfEdgeMeshTest") {
-    group = "application"
-    description = "Run HalfEdgeMesh test"
-    classpath = sourceSets["test"].runtimeClasspath
-    mainClass.set("mesh.HalfEdgeMeshTestKt")
+tasks.test {
+    useJUnitPlatform()
+    testLogging {
+        events("passed", "skipped", "failed")
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+        showStandardStreams = true
+    }
 }

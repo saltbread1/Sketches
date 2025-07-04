@@ -47,6 +47,7 @@ class HalfEdgeMeshTest
         return SimpleMeshData(vertices, faces)
     }
 
+    @Test
     fun testPlaneBasicProperties()
     {
         val mesh = HalfEdgeMesh()
@@ -63,10 +64,9 @@ class HalfEdgeMeshTest
         assertTrue(mesh.isBoundaryVertex(1))
         assertTrue(mesh.isBoundaryVertex(2))
         assertTrue(mesh.isBoundaryVertex(3))
-
-        println("testPlaneBasicProperties: PASSED")
     }
 
+    @Test
     fun testTetrahedronBasicProperties()
     {
         val mesh = HalfEdgeMesh()
@@ -83,10 +83,9 @@ class HalfEdgeMeshTest
         assertFalse(mesh.isBoundaryVertex(1))
         assertFalse(mesh.isBoundaryVertex(2))
         assertFalse(mesh.isBoundaryVertex(3))
-
-        println("testTetrahedronBasicProperties: PASSED")
     }
 
+    @Test
     fun testVertexPositionOperations()
     {
         val mesh = HalfEdgeMesh()
@@ -110,10 +109,9 @@ class HalfEdgeMeshTest
 
         assertNull(mesh.getVertexPosition(10))
         assertFalse(mesh.setVertexPosition(10, PVector(0f, 0f, 0f)))
-
-        println("testVertexPositionOperations: PASSED")
     }
 
+    @Test
     fun testAdjacentVertices()
     {
         val mesh = HalfEdgeMesh()
@@ -124,19 +122,16 @@ class HalfEdgeMeshTest
         assertTrue(adjacentTo0.contains(1))
         assertTrue(adjacentTo0.contains(2))
         assertTrue(adjacentTo0.contains(3))
-        // Expected: vertex 0 should be adjacent to 1, 2, and 3 (appears in both faces)
         assertEquals(3, adjacentTo0.size, "Vertex 0 should have exactly 3 adjacent vertices but got: $adjacentTo0")
         
         val adjacentTo2 = mesh.getAdjacentVertices(2)
         assertTrue(adjacentTo2.contains(0))
         assertTrue(adjacentTo2.contains(1))
         assertTrue(adjacentTo2.contains(3))
-        // Expected: vertex 2 should be adjacent to 0, 1, and 3 (appears in both faces)
         assertEquals(3, adjacentTo2.size, "Vertex 2 should have exactly 3 adjacent vertices but got: $adjacentTo2")
-
-        println("testAdjacentVertices: PASSED")
     }
 
+    @Test
     fun testAdjacentFaces()
     {
         val mesh = HalfEdgeMesh()
@@ -152,10 +147,9 @@ class HalfEdgeMeshTest
         assertTrue(facesOf2.contains(0))
         assertTrue(facesOf2.contains(1))
         assertEquals(2, facesOf2.size)
-
-        println("testAdjacentFaces: PASSED")
     }
 
+    @Test
     fun testFaceNeighbors()
     {
         val mesh = HalfEdgeMesh()
@@ -169,10 +163,9 @@ class HalfEdgeMeshTest
         val neighborsOf1 = mesh.getFaceNeighbors(1)
         assertTrue(neighborsOf1.contains(0))
         assertEquals(1, neighborsOf1.size)
-
-        println("testFaceNeighbors: PASSED")
     }
 
+    @Test
     fun testFaceVertices()
     {
         val mesh = HalfEdgeMesh()
@@ -190,10 +183,9 @@ class HalfEdgeMeshTest
         assertTrue(verticesOf1.contains(2))
         assertTrue(verticesOf1.contains(3))
         assertEquals(3, verticesOf1.size)
-
-        println("testFaceVertices: PASSED")
     }
 
+    @Test
     fun testHalfEdgeRetrieval()
     {
         val mesh = HalfEdgeMesh()
@@ -208,10 +200,9 @@ class HalfEdgeMeshTest
 
         val nonExistentEdge = mesh.getSpecifiedHalfEdge(0, 10)
         assertNull(nonExistentEdge)
-
-        println("testHalfEdgeRetrieval: PASSED")
     }
 
+    @Test
     fun testUniqueHalfEdges()
     {
         val mesh = HalfEdgeMesh()
@@ -219,7 +210,7 @@ class HalfEdgeMeshTest
         mesh.buildMesh(planeMeshData)
 
         val uniqueEdges = mesh.getUniqueHalfEdges()
-        assertEquals(5, uniqueEdges.size) // Note: Implementation bug - should be 5 (4 boundary + 1 internal)
+        assertEquals(5, uniqueEdges.size)
 
         val tetrahedronMesh = HalfEdgeMesh()
         val tetrahedronMeshData = createTetrahedronMesh()
@@ -227,10 +218,9 @@ class HalfEdgeMeshTest
 
         val uniqueTetrahedronEdges = tetrahedronMesh.getUniqueHalfEdges()
         assertEquals(6, uniqueTetrahedronEdges.size)
-
-        println("testUniqueHalfEdges: PASSED")
     }
 
+    @Test
     fun testEdgeSplitting()
     {
         val mesh = HalfEdgeMesh()
@@ -254,10 +244,9 @@ class HalfEdgeMeshTest
         assertEquals(0.5f, newVertexPos.x)
         assertEquals(0f, newVertexPos.y)
         assertEquals(0f, newVertexPos.z)
-
-        println("testEdgeSplitting: PASSED")
     }
 
+    @Test
     fun testMeshValidation()
     {
         val mesh = HalfEdgeMesh()
@@ -273,10 +262,9 @@ class HalfEdgeMeshTest
 
         val tetrahedronValidationResult = tetrahedronMesh.validate()
         assertTrue(tetrahedronValidationResult.isEmpty())
-
-        println("testMeshValidation: PASSED")
     }
 
+    @Test
     fun testIteratorMethods()
     {
         val mesh = HalfEdgeMesh()
@@ -303,46 +291,7 @@ class HalfEdgeMeshTest
             assertTrue(source >= 0 && source < mesh.getVertexCount())
             assertTrue(target >= 0 && target < mesh.getVertexCount())
         }
-        assertEquals(5, edgeCount) // Note: Implementation bug - should be 5 (4 boundary + 1 internal)
-
-        println("testIteratorMethods: PASSED")
+        assertEquals(5, edgeCount)
     }
 
-    fun runAllTests()
-    {
-        val testMethods = listOf(
-            { testPlaneBasicProperties() },
-            { testTetrahedronBasicProperties() },
-            { testVertexPositionOperations() },
-            { testAdjacentVertices() },
-            { testAdjacentFaces() },
-            { testFaceNeighbors() },
-            { testFaceVertices() },
-            { testHalfEdgeRetrieval() },
-            { testUniqueHalfEdges() },
-            { testEdgeSplitting() },
-            { testMeshValidation() },
-            { testIteratorMethods() }
-        )
-
-        println("Running HalfEdgeMesh tests...")
-        testMethods.forEach { test ->
-            try
-            {
-                test()
-            }
-            catch (e: Exception)
-            {
-                println("Test failed: ${e.message}")
-                e.printStackTrace()
-            }
-        }
-        println("All tests completed.")
-    }
-}
-
-fun main()
-{
-    val test = HalfEdgeMeshTest()
-    test.runAllTests()
 }
