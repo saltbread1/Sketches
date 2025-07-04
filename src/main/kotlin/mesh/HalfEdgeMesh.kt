@@ -98,7 +98,7 @@ class HalfEdgeMesh()
     /**
      * Get the number of unique edges.
      */
-    fun getEdgeCount() = getUniqueHalfEdges().size
+    fun getEdgeCount() = halfEdges.size / 2
 
     fun getVertexPosition(vertex: Int): PVector?
     {
