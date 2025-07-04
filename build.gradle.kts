@@ -22,6 +22,8 @@ dependencies {
 
     // native window
     runtimeOnly("org.jogamp.jogl:nativewindow-main:2.5.0")
+
+    testImplementation(kotlin("test"))
 }
 
 kotlin {
@@ -30,4 +32,13 @@ kotlin {
 
 application {
     mainClass.set("MainKt")
+}
+
+tasks.test {
+    useJUnitPlatform()
+    testLogging {
+        events("passed", "skipped", "failed")
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+        showStandardStreams = true
+    }
 }
