@@ -53,7 +53,8 @@ class HalfEdgeMesh()
         }
 
         // set opposite half-edges
-        edgeToHalfEdge.forEach { (key, edge) ->
+        val edgeList = edgeToHalfEdge.toList()
+        edgeList.forEach { (key, edge) ->
             val reverseKey = Pair(key.second, key.first)
             edge.opposite = edgeToHalfEdge[reverseKey]
 
