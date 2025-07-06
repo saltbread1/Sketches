@@ -12,6 +12,10 @@ class HalfEdgeMesh()
 
     fun buildMesh(meshData: MeshData)
     {
+        vertices.clear()
+        faces.clear()
+        halfEdges.clear()
+
         // key: (origin, end)
         val edgeToHalfEdge: MutableMap<Pair<Int, Int>, HalfEdge> = mutableMapOf()
 
@@ -171,7 +175,7 @@ class HalfEdgeMesh()
         }
         while (current != null && current != start)
 
-        return result
+        return result.toList()
     }
 
     /**
@@ -194,7 +198,7 @@ class HalfEdgeMesh()
         }
         while (current != null && current != start)
 
-        return result
+        return result.toList()
     }
 
     /**
@@ -215,7 +219,7 @@ class HalfEdgeMesh()
         }
         while (current != null && current != start)
 
-        return result
+        return result.toList()
     }
 
     fun getSpecifiedHalfEdge(sourceVertex: Int, targetVertex: Int): HalfEdge?
@@ -248,7 +252,7 @@ class HalfEdgeMesh()
             }
         }
 
-        return uniqueEdges
+        return uniqueEdges.toList()
     }
 
     fun forEachVertex(action: (vertex: Int, position: PVector) -> Unit)
@@ -406,6 +410,70 @@ class HalfEdgeMesh()
     {
         val edge = getSpecifiedHalfEdge(sourceVertex, targetVertex) ?: return false
         return splitEdge(edge, position)
+    }
+
+    /**
+     * Subdivide the mesh by splitting each triangle into 4 triangles.
+     * Each edge is split at its midpoint, creating new vertices.
+     *
+     * @param midPointStrategy a strategy to calculate the coordinate of the middle point vertex
+     */
+    fun subdivide(midPointStrategy: (PVector, PVector) -> PVector = { v0, v1 -> PVector.lerp(v0, v1, 0.5f) })
+    {
+        val newMesh = object : MeshData
+        {
+            val meshVertices = mutableListOf<PVector>()
+            val meshFaces = mutableListOf<Triple<Int, Int, Int>>()
+            val edgeMidpoints = mutableMapOf<Pair<Int, Int>, Int>()
+
+            init
+            {
+                val edges = getUniqueHalfEdges()
+
+                meshVertices.addAll(vertices.map { it.position.copy() })
+
+                edges.forEach { edge ->
+                    val sourceVertex = edge.opposite?.vertex ?: return@forEach
+                    val targetVertex = edge.vertex
+
+                    val v0 = vertices[sourceVertex].position
+                    val v1 = vertices[targetVertex].position
+                    val mid = midPointStrategy.invoke(v0, v1)
+                    meshVertices.add(mid)
+                    edgeMidpoints[Pair(min(sourceVertex, targetVertex), max(sourceVertex, targetVertex))] = meshVertices.lastIndex
+                }
+
+                faces.forEach { face ->
+                    val edge = face.halfEdge
+                    val next = edge.next ?: return@forEach
+                    val prev = edge.prev ?: return@forEach
+
+                    val v0 = edge.vertex
+                    val v1 = next.vertex
+                    val v2 = prev.vertex
+                    val m01 = edgeMidpoints[Pair(min(v0, v1), max(v0, v1))] ?: return@forEach
+                    val m12 = edgeMidpoints[Pair(min(v1, v2), max(v1, v2))] ?: return@forEach
+                    val m20 = edgeMidpoints[Pair(min(v2, v0), max(v2, v0))] ?: return@forEach
+
+                    meshFaces.add(Triple(v0, m01, m20))
+                    meshFaces.add(Triple(m01, v1, m12))
+                    meshFaces.add(Triple(m20, m12, v2))
+                    meshFaces.add(Triple(m01, m12, m20))
+                }
+            }
+
+            override fun getVertices(): Collection<PVector>
+            {
+                return meshVertices.toList()
+            }
+
+            override fun getFaces(): Collection<Triple<Int, Int, Int>>
+            {
+                return meshFaces.toList()
+            }
+        }
+
+        buildMesh(newMesh)
     }
 
     /**
