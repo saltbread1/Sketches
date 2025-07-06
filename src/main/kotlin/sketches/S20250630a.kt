@@ -1,4 +1,6 @@
 package sketches
+import mesh.HalfEdgeMesh
+import mesh.MeshData
 import processing.core.PVector
 
 
@@ -8,19 +10,28 @@ class S20250630a : ExtendedPApplet(P3D)
     private val center = PVector(0.0f, 0.0f, 0.0f)
     private val fov = HALF_PI
     private val far = 10.0f
+    private val icosphere = HalfEdgeMesh()
 
     override fun setup()
     {
         perspective(fov, aspect, 0.1f, far)
         camera(eye.x, eye.y, eye.z, center.x, center.y, center.z, 0.0f, 1.0f, 0.0f)
 
+        icosphere.buildMesh(Icosahedron())
+        icosphere.subdivide { v0, v1 -> PVector.lerp(v0, v1, 0.5f).normalize() }
+        icosphere.subdivide { v0, v1 -> PVector.lerp(v0, v1, 0.5f).normalize() }
+        icosphere.subdivide { v0, v1 -> PVector.lerp(v0, v1, 0.5f).normalize() }
+        val error = icosphere.validate()
+        if (error.isNotEmpty())
+        {
+            throw IllegalStateException("Invalid mesh state: $error")
+        }
+
 //        noLoop()
     }
 
     override fun draw()
     {
-        val icosahedron = Icosahedron()
-
         background(0)
 
         push()
@@ -28,7 +39,14 @@ class S20250630a : ExtendedPApplet(P3D)
         rotateX(frameCount * 0.01f)
         stroke(255)
         fill(50.0f, 100.0f, 150.0f, 255.0f)
-        icosahedron.draw()
+        icosphere.forEachFace { _, vertices ->
+            beginShape()
+            vertices.forEach {
+                val p = icosphere.getVertexPosition(it) ?: return@forEach
+                vertex(p.x, p.y, p.z)
+            }
+            endShape()
+        }
         pop()
     }
 
@@ -38,12 +56,10 @@ class S20250630a : ExtendedPApplet(P3D)
         redraw()
     }
 
-    private data class Face(val v0: Int, val v1: Int, val v2: Int)
-
-    private inner class Icosahedron
+    private inner class Icosahedron : MeshData
     {
         private val vertices: MutableList<PVector> = mutableListOf()
-        private val faces: MutableList<Face> = mutableListOf()
+        private val faces: MutableList<Triple<Int, Int, Int>> = mutableListOf()
 
         init
         {
@@ -70,30 +86,30 @@ class S20250630a : ExtendedPApplet(P3D)
             // create CCW faces
             for (i in 1 .. 5)
             { // 0 and 1--5
-                faces.add(Face(0, i, i % 5 + 1))
+                faces.add(Triple(0, i, i % 5 + 1))
             }
             for (i in 1 .. 5)
             { // middle 10 faces
-                faces.add(Face(i, i + 5, i % 5 + 1))
-                faces.add(Face(i % 5 + 1, i + 5, i % 5 + 6))
+                faces.add(Triple(i, i + 5, i % 5 + 1))
+                faces.add(Triple(i % 5 + 1, i + 5, i % 5 + 6))
             }
             for (i in 1 .. 5)
             { // 11 and 6--10
-                faces.add(Face(i % 5 + 6, i + 5, 11))
+                faces.add(Triple(i % 5 + 6, i + 5, 11))
             }
         }
 
-        fun getVertices(): List<PVector> = vertices.toList()
+        override fun getVertices(): List<PVector> = vertices.toList()
 
-        fun getFaces(): List<Face> = faces.toList()
+        override fun getFaces(): List<Triple<Int, Int, Int>> = faces.toList()
 
         fun draw()
         {
             faces.forEach {
                 beginShape()
-                vertex(vertices[it.v0].x, vertices[it.v0].y, vertices[it.v0].z)
-                vertex(vertices[it.v1].x, vertices[it.v1].y, vertices[it.v1].z)
-                vertex(vertices[it.v2].x, vertices[it.v2].y, vertices[it.v2].z)
+                vertex(vertices[it.first].x, vertices[it.first].y, vertices[it.first].z)
+                vertex(vertices[it.second].x, vertices[it.second].y, vertices[it.second].z)
+                vertex(vertices[it.third].x, vertices[it.third].y, vertices[it.third].z)
                 endShape()
             }
         }
