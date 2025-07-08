@@ -103,4 +103,14 @@ abstract class ExtendedPApplet(private val renderer: String, protected val isSav
         val forward = PVector(viewMat.m02, viewMat.m12, viewMat.m22)
         return PVector.mult(side, v.x).add(PVector.mult(up, v.y)).add(PVector.mult(forward, v.z)).normalize()
     }
+
+    /**
+     * Calculate two points on the sphere.
+     */
+    protected fun haversine(latitude1: Float, longitude1: Float, latitude2: Float, longitude2: Float, radius: Float): Float
+    {
+        val latitude = latitude2 - latitude1
+        val longitude = longitude2 - longitude1
+        return 2.0f * radius * asin(sqrt(sq(sin(latitude / 2.0f)) + cos(latitude1) * cos(latitude2) * sq(sin(longitude / 2.0f))))
+    }
 }
