@@ -78,12 +78,24 @@ class S20250630a : ExtendedPApplet(P3D)
         rotateY(frameCount * 0.007f)
         randomWalks[1].draw()
         popMatrix()
+
+        if (isSave)
+        {
+            saveFrame(saveFrameName(this::class))
+            if (frameCount >= fps * 20.0f) exit()
+        }
     }
 
     override fun keyPressed()
     {
         super.keyPressed()
         randomWalks.forEach { it.init() }
+    }
+
+    override fun exit()
+    {
+        if (isSave) println(makeMovie(this::class, fps.toInt(), fps.toInt()))
+        super.exit()
     }
 
     private inner class Icosahedron : MeshData
