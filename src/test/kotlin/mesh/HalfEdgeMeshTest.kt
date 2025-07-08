@@ -7,13 +7,9 @@ class HalfEdgeMeshTest
 {
 
     class SimpleMeshData(
-        private val vertices: List<PVector>,
-        private val faces: List<Triple<Int, Int, Int>>
+        override val vertices: List<PVector>,
+        override val faces: List<Triple<Int, Int, Int>>
     ) : MeshData
-    {
-        override fun getVertices(): Collection<PVector> = vertices
-        override fun getFaces(): Collection<Triple<Int, Int, Int>> = faces
-    }
 
     private fun createPlaneMesh(): SimpleMeshData
     {

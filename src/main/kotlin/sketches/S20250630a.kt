@@ -88,8 +88,8 @@ class S20250630a : ExtendedPApplet(P3D)
 
     private inner class Icosahedron : MeshData
     {
-        private val vertices: MutableList<PVector> = mutableListOf()
-        private val faces: MutableList<Triple<Int, Int, Int>> = mutableListOf()
+        override val vertices: MutableList<PVector> = mutableListOf()
+        override val faces: MutableList<Triple<Int, Int, Int>> = mutableListOf()
 
         init
         {
@@ -128,10 +128,6 @@ class S20250630a : ExtendedPApplet(P3D)
                 faces.add(Triple(i % 5 + 6, i + 5, 11))
             }
         }
-
-        override fun getVertices(): List<PVector> = vertices.toList()
-
-        override fun getFaces(): List<Triple<Int, Int, Int>> = faces.toList()
     }
 
     private inner class RandomWalk(private val palette: IntArray, private val elementHeight: Float, numDivision: Int, numWalkers: Int, maxElements: Int)
@@ -330,12 +326,6 @@ class S20250630a : ExtendedPApplet(P3D)
                     fill(color, a)
                 }
 
-                // bottom
-//            beginShape()
-//            bottomFace.forEach { vertex(it.x, it.y, it.z) }
-//            endShape(CLOSE)
-
-                // sides
                 for (i in 0 until 3)
                 {
                     beginShape()
