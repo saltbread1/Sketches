@@ -2,15 +2,22 @@ package sketches
 import mesh.HalfEdgeMesh
 import mesh.MeshData
 import processing.core.PVector
+import java.util.Queue
+import java.util.concurrent.ConcurrentLinkedDeque
 
-
+/**
+ * Random walk on the icosphere.
+ */
 class S20250630a : ExtendedPApplet(P3D)
 {
+    private val palette = createPalette("f72585-b5179e-7209b7-560bad-480ca8-3a0ca3-3f37c9-4361ee-4895ef-4cc9f0")
     private val eye = PVector(0.0f, 0.0f, 2.0f)
     private val center = PVector(0.0f, 0.0f, 0.0f)
     private val fov = HALF_PI
     private val far = 10.0f
     private val icosphere = HalfEdgeMesh()
+    private val walkers = List(3) { Walker() }
+    private val fps = 60.0f
 
     override fun setup()
     {
@@ -27,27 +34,22 @@ class S20250630a : ExtendedPApplet(P3D)
             throw IllegalStateException("Invalid mesh state: $error")
         }
 
-//        noLoop()
+        walkers.forEach { it.init() }
+
+        frameRate(fps)
     }
 
     override fun draw()
     {
         background(0)
 
-        push()
-        rotateY(frameCount * 0.005f)
-        rotateX(frameCount * 0.01f)
-        stroke(255)
-        fill(50.0f, 100.0f, 150.0f, 255.0f)
-        icosphere.forEachFace { _, vertices ->
-            beginShape()
-            vertices.forEach {
-                val p = icosphere.getVertexPosition(it) ?: return@forEach
-                vertex(p.x, p.y, p.z)
-            }
-            endShape()
-        }
-        pop()
+        walkers.forEach { it.update() }
+
+        pushMatrix()
+        rotateY(frameCount * 0.008f)
+        rotateX(frameCount * 0.013f)
+        walkers.forEach { it.draw() }
+        popMatrix()
     }
 
     override fun keyPressed()
@@ -102,16 +104,134 @@ class S20250630a : ExtendedPApplet(P3D)
         override fun getVertices(): List<PVector> = vertices.toList()
 
         override fun getFaces(): List<Triple<Int, Int, Int>> = faces.toList()
+    }
+
+    private inner class Walker
+    {
+        private val elements: Queue<WalkerElement> = ConcurrentLinkedDeque()
+        private val maxElements = 32
+
+        fun init()
+        {
+            elements.clear()
+            elements.add(WalkerElement(random(icosphere.getFaceCount().toFloat()).toInt()))
+        }
+
+        fun update()
+        {
+            val last = elements.last().getFace()
+            var next = last
+            val maxItr = 40
+            var cnt = 0
+            while (walkers.any { walker -> walker.elements.any { it.getFace() == next } } && cnt++ < maxItr)
+            {
+                next = icosphere.getFaceNeighbors(last).random()
+            }
+            val newElement = WalkerElement(next)
+            newElement.stretch(300L) { easeOutPolynomial(it, 4.0f) }
+            elements.add(newElement)
+
+            if (elements.count { !it.isRemoved() } > maxElements)
+            {
+                val first = elements.first { !it.isRemoved() }
+                first.remove()
+                first.stretch(300L, { elements.remove(first) }) { easeOutPolynomial(1.0f - it, 4.0f) }
+            }
+        }
 
         fun draw()
         {
-            faces.forEach {
-                beginShape()
-                vertex(vertices[it.first].x, vertices[it.first].y, vertices[it.first].z)
-                vertex(vertices[it.second].x, vertices[it.second].y, vertices[it.second].z)
-                vertex(vertices[it.third].x, vertices[it.third].y, vertices[it.third].z)
-                endShape()
+            elements.forEach { it.draw() }
+        }
+    }
+
+    private inner class WalkerElement(private val face: Int)
+    {
+        private val bottomFace: List<PVector>
+        private val center: PVector
+        private val normal: PVector
+        private val color = palette.random()
+        @Volatile private var alpha = 0.0f
+        private val maxHeight: Float
+        @Volatile private var currHeight = 0.0f
+        private var stretchThread: Thread? = null
+        @Volatile private var isStretchInterrupted = false
+        private var isRemoved = false
+
+        init
+        {
+            bottomFace = icosphere.getFaceVertices(face)
+                .map { icosphere.getVertexPosition(it) ?: throw IllegalArgumentException("Invalid face index: $face") }
+                .toList()
+            center = PVector.add(PVector.add(bottomFace[0], bottomFace[1]), bottomFace[2]).div(3.0f)
+            normal = center.copy().normalize()
+            val k = 1.7f
+            maxHeight = noise(
+                ((center.x * 0.5f + 0.5f) + (center.y + 0.5f + 1.5f) + (center.z + 0.5f + 2.5f)) * k,
+                frameCount / fps * 0.2f
+            ) * 0.71f
+        }
+
+        fun getFace(): Int = face
+
+        fun stretch(maxMillis: Long, onFinished: () -> Unit = {}, easing: (Float) -> Float)
+        {
+            // finish the thread
+            isStretchInterrupted = true
+            stretchThread?.join()
+            isStretchInterrupted = false
+
+            // start a new thread
+            stretchThread = Thread {
+                var t = 0L
+                val deltaT = (1000L / fps).toLong()
+                val maxT = maxMillis
+                while (t < maxT)
+                {
+                    if (isStretchInterrupted) break
+                    t += deltaT
+                    val factor = easing(t.toFloat() / maxT.toFloat())
+                    currHeight = factor * maxHeight
+                    alpha = factor
+                    if (t > maxT) break
+                    Thread.sleep(deltaT)
+                }
+                onFinished()
             }
+            stretchThread?.start()
+        }
+
+        fun remove()
+        {
+            isRemoved = true
+        }
+
+        fun isRemoved(): Boolean = isRemoved
+
+        fun draw()
+        {
+            val top = PVector.mult(normal, currHeight).add(center)
+
+            pushStyle()
+            noStroke()
+            fill(color, alpha * 120.0f)
+
+            // bottom
+//            beginShape()
+//            bottomFace.forEach { vertex(it.x, it.y, it.z) }
+//            endShape(CLOSE)
+
+            // sides
+            for (i in 0 until 3)
+            {
+                beginShape()
+                vertex(bottomFace[i].x, bottomFace[i].y, bottomFace[i].z)
+                vertex(bottomFace[(i + 1) % 3].x, bottomFace[(i + 1) % 3].y, bottomFace[(i + 1) % 3].z)
+                vertex(top.x, top.y, top.z)
+                endShape(CLOSE)
+            }
+
+            popStyle()
         }
     }
 }
