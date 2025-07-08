@@ -2,7 +2,6 @@ package sketches
 import mesh.HalfEdgeMesh
 import mesh.MeshData
 import processing.core.PVector
-import processing.opengl.PGL
 import processing.opengl.PGraphicsOpenGL
 import processing.opengl.PShader
 import java.util.*
@@ -22,7 +21,7 @@ class S20250630a : ExtendedPApplet(P3D)
     private val mesh = Icosahedron()
     private val randomWalks = listOf(
         RandomWalk(palette1, 0.6f, 3, 3, 30),
-        RandomWalk(palette2, 0.0f, 4, 6, 120),
+        RandomWalk(palette2, 0.0f, 4, 8, 90),
     )
     private var bgShader: PShader? = null
 
@@ -35,9 +34,9 @@ class S20250630a : ExtendedPApplet(P3D)
         bgShader = loadShader(
             this::class.java.classLoader.getResource("shaders/gradation.glsl")?.path)
         bgShader?.set("resolution", (width * pixelDensity).toFloat(), (height * pixelDensity).toFloat())
-        bgShader?.set("direction", 0.0f, -1.0f)
-        bgShader?.set("startColor", 0.0f, 0.0f, 0.0f)
-        bgShader?.set("endColor", 0.41f, 0.41f, 0.44f)
+        bgShader?.set("direction", width.toFloat(), -height.toFloat())
+        bgShader?.set("startColor", 0.24f, 0.23f, 0.56f)
+        bgShader?.set("endColor", 0.64f, 0.023f, 0.12f)
 
         frameRate(fps)
     }
@@ -45,6 +44,8 @@ class S20250630a : ExtendedPApplet(P3D)
     override fun draw()
     {
         background(30.0f, 30.0f, 36.0f)
+
+        hint(DISABLE_DEPTH_MASK)
 
         // background
         (g as PGraphicsOpenGL).pushProjection()
@@ -58,26 +59,24 @@ class S20250630a : ExtendedPApplet(P3D)
         resetShader()
         (g as PGraphicsOpenGL).popProjection()
 
-        // reset depth buffer
-        val pgl = beginPGL()
-        pgl.clear(PGL.DEPTH_BUFFER_BIT)
-        endPGL()
+        hint(ENABLE_DEPTH_MASK)
 
         randomWalks.forEach { it.update() }
 
-        pushMatrix()
-        rotateY(frameCount * 0.008f)
-        rotateX(frameCount * 0.013f)
 
         // inner
         pushMatrix()
+        rotateY(frameCount * 0.008f)
+        rotateX(frameCount * 0.013f)
         scale(0.5f)
         randomWalks[0].draw()
         popMatrix()
 
         // outer
+        pushMatrix()
+        rotateX(frameCount * 0.003f)
+        rotateY(frameCount * 0.007f)
         randomWalks[1].draw()
-
         popMatrix()
     }
 
@@ -138,7 +137,7 @@ class S20250630a : ExtendedPApplet(P3D)
     private inner class RandomWalk(private val palette: IntArray, private val elementHeight: Float, numDivision: Int, numWalkers: Int, maxElements: Int)
     {
         private val icosphere = HalfEdgeMesh()
-        private val walkers = List(numWalkers) { Walker(elementHeight, maxElements) }
+        private val walkers = List(numWalkers) { Walker(maxElements) }
 
         init
         {
@@ -169,7 +168,7 @@ class S20250630a : ExtendedPApplet(P3D)
             walkers.forEach { it.draw() }
         }
 
-        private inner class Walker(private val elementHeight: Float, private val maxElements: Int)
+        private inner class Walker(private val maxElements: Int)
         {
             private val elements: Queue<WalkerElement> = ConcurrentLinkedDeque()
 
@@ -179,19 +178,19 @@ class S20250630a : ExtendedPApplet(P3D)
                 elements.add(WalkerElement(hashCode(), random(icosphere.getFaceCount().toFloat()).toInt(), elementHeight))
             }
 
-            fun getElements(): List<WalkerElement> = elements.toList()
+            fun getElementsAsList(): List<WalkerElement> = elements.toList()
 
             fun update()
             {
-                val newElement = WalkerElement(hashCode(), elements.last().getNextFace(), elementHeight)
-                newElement.stretch(500L) { easeOutPolynomial(it, 4.0f) }
+                val newElement = WalkerElement(hashCode(), elements.last().getNextFace(), elementHeight, random(1.0f) < 0.5f)
+                newElement.transition(500L) { easeOutPolynomial(it, 4.0f) }
                 elements.add(newElement)
 
                 if (elements.count { !it.isRemoved() } > maxElements)
                 {
                     val first = elements.first { !it.isRemoved() }
                     first.remove()
-                    first.stretch(500L, { elements.remove(first) }) { easeOutPolynomial(1.0f - it, 4.0f) }
+                    first.transition(500L, { elements.remove(first) }) { easeOutPolynomial(1.0f - it, 4.0f) }
                 }
             }
 
@@ -201,43 +200,35 @@ class S20250630a : ExtendedPApplet(P3D)
             }
         }
 
-        private inner class WalkerElement(private val group: Int, private val face: Int, baseHeight: Float)
+        private inner class WalkerElement(private val group: Int,
+                                          private val face: Int,
+                                          baseHeight: Float,
+                                          private val isWire: Boolean = false)
         {
-            private val bottomFace: List<PVector>
-            private val center: PVector
-            private val normal: PVector
+            private val bottomFace: List<PVector> = icosphere.getFaceVertices(face)
+                .map { icosphere.getVertexPosition(it) ?: throw IllegalArgumentException("Invalid face index: $face") }
+                .toList()
+            private val center: PVector = PVector.add(PVector.add(bottomFace[0], bottomFace[1]), bottomFace[2]).div(3.0f)
+            private val normal: PVector = center.copy().normalize()
             private val color = palette.random()
             @Volatile private var alpha = 0.0f
-            private val maxHeight: Float
+            private val maxHeight: Float = noise(
+                ((center.x * 0.5f + 0.5f) + (center.y + 0.5f + 1.5f) + (center.z + 0.5f + 2.5f)) * 1.7f,
+                frameCount / fps * 0.2f
+            ) * baseHeight
             @Volatile private var currHeight = 0.0f
             private var stretchThread: Thread? = null
             @Volatile private var isStretchInterrupted = false
-            private var isRemoved = false
-
-            init
-            {
-                bottomFace = icosphere.getFaceVertices(face)
-                    .map { icosphere.getVertexPosition(it) ?: throw IllegalArgumentException("Invalid face index: $face") }
-                    .toList()
-                center = PVector.add(PVector.add(bottomFace[0], bottomFace[1]), bottomFace[2]).div(3.0f)
-                normal = center.copy().normalize()
-                val k = 1.7f
-                this.maxHeight = noise(
-                    ((center.x * 0.5f + 0.5f) + (center.y + 0.5f + 1.5f) + (center.z + 0.5f + 2.5f)) * k,
-                    frameCount / fps * 0.2f
-                ) * baseHeight
-            }
-
-            fun getFace(): Int = face
+            private var removed = false
 
             fun remove()
             {
-                isRemoved = true
+                removed = true
             }
 
-            fun isRemoved(): Boolean = isRemoved
+            fun isRemoved(): Boolean = removed
 
-            fun stretch(maxMillis: Long, onFinished: () -> Unit = {}, easing: (Float) -> Float)
+            fun transition(maxMillis: Long, onFinished: () -> Unit = {}, easing: (Float) -> Float)
             {
                 // finish the thread
                 isStretchInterrupted = true
@@ -259,14 +250,14 @@ class S20250630a : ExtendedPApplet(P3D)
                         if (t > maxT) break
                         Thread.sleep(deltaT)
                     }
-                    onFinished()
+                    onFinished.invoke()
                 }
                 stretchThread?.start()
             }
 
             fun getNextFace(): Int
             {
-                val others = walkers.map { it.getElements() }.flatten().filter { it.getFace() != face }
+                val others = walkers.map { it.getElementsAsList() }.flatten().filter { it.face != face }
 
                 val neighbors = icosphere.getFaceNeighbors(face).toMutableList()
                 // remove the location where walkers are already located
@@ -325,10 +316,19 @@ class S20250630a : ExtendedPApplet(P3D)
             fun draw()
             {
                 val top = PVector.mult(normal, currHeight).add(center)
+                val a = alpha * 140.0f
 
                 pushStyle()
-                noStroke()
-                fill(color, alpha * 180.0f)
+                if (isWire)
+                {
+                    stroke(color, a)
+                    fill(color, a * 0.4f)
+                }
+                else
+                {
+                    noStroke()
+                    fill(color, a)
+                }
 
                 // bottom
 //            beginShape()
