@@ -20,10 +20,10 @@ class HalfEdgeMesh()
         val edgeToHalfEdge: MutableMap<Pair<Int, Int>, HalfEdge> = mutableMapOf()
 
         // initial vertices
-        vertices.addAll(meshData.getVertices().asSequence().map { Vertex(it.copy(), null) })
+        vertices.addAll(meshData.vertices.asSequence().map { Vertex(it.copy(), null) })
 
         // create half-edges
-        meshData.getFaces().forEachIndexed { face, (v0, v1, v2) ->
+        meshData.faces.forEachIndexed { face, (v0, v1, v2) ->
             // create half-edges
             val e0 = HalfEdge(v1, face, null, null, null)
             val e1 = HalfEdge(v2, face, null, null, null)
@@ -422,28 +422,28 @@ class HalfEdgeMesh()
     {
         val newMesh = object : MeshData
         {
-            val meshVertices = mutableListOf<PVector>()
-            val meshFaces = mutableListOf<Triple<Int, Int, Int>>()
+            override val vertices = mutableListOf<PVector>()
+            override val faces = mutableListOf<Triple<Int, Int, Int>>()
             val edgeMidpoints = mutableMapOf<Pair<Int, Int>, Int>()
 
             init
             {
                 val edges = getUniqueHalfEdges()
 
-                meshVertices.addAll(vertices.map { it.position.copy() })
+                vertices.addAll(this@HalfEdgeMesh.vertices.map { it.position.copy() })
 
                 edges.forEach { edge ->
                     val sourceVertex = edge.opposite?.vertex ?: return@forEach
                     val targetVertex = edge.vertex
 
-                    val v0 = vertices[sourceVertex].position
-                    val v1 = vertices[targetVertex].position
+                    val v0 = this@HalfEdgeMesh.vertices[sourceVertex].position
+                    val v1 = this@HalfEdgeMesh.vertices[targetVertex].position
                     val mid = midPointStrategy.invoke(v0, v1)
-                    meshVertices.add(mid)
-                    edgeMidpoints[Pair(min(sourceVertex, targetVertex), max(sourceVertex, targetVertex))] = meshVertices.lastIndex
+                    vertices.add(mid)
+                    edgeMidpoints[Pair(min(sourceVertex, targetVertex), max(sourceVertex, targetVertex))] = vertices.lastIndex
                 }
 
-                faces.forEach { face ->
+                this@HalfEdgeMesh.faces.forEach { face ->
                     val edge = face.halfEdge
                     val next = edge.next ?: return@forEach
                     val prev = edge.prev ?: return@forEach
@@ -455,21 +455,11 @@ class HalfEdgeMesh()
                     val m12 = edgeMidpoints[Pair(min(v1, v2), max(v1, v2))] ?: return@forEach
                     val m20 = edgeMidpoints[Pair(min(v2, v0), max(v2, v0))] ?: return@forEach
 
-                    meshFaces.add(Triple(v0, m01, m20))
-                    meshFaces.add(Triple(m01, v1, m12))
-                    meshFaces.add(Triple(m20, m12, v2))
-                    meshFaces.add(Triple(m01, m12, m20))
+                    faces.add(Triple(v0, m01, m20))
+                    faces.add(Triple(m01, v1, m12))
+                    faces.add(Triple(m20, m12, v2))
+                    faces.add(Triple(m01, m12, m20))
                 }
-            }
-
-            override fun getVertices(): Collection<PVector>
-            {
-                return meshVertices.toList()
-            }
-
-            override fun getFaces(): Collection<Triple<Int, Int, Int>>
-            {
-                return meshFaces.toList()
             }
         }
 
