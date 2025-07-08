@@ -5,9 +5,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="604821d5-04d4-484a-bce1-fe37c1651b17" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/mesh/HalfEdgeMesh.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/mesh/HalfEdgeMesh.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/sketches/S20250630a.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/sketches/S20250630a.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -54,6 +51,7 @@
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "git-widget-placeholder": "development",
     "junie.onboarding.icon.badge.shown": "true",
     "node.js.detected.package.eslint": "true",
@@ -146,7 +144,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1751598497678</updated>
-      <workItem from="1751598499130" duration="357000" />
+      <workItem from="1751598499130" duration="47499000" />
     </task>
     <servers />
   </component>

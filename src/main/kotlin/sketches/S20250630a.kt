@@ -2,6 +2,9 @@ package sketches
 import mesh.HalfEdgeMesh
 import mesh.MeshData
 import processing.core.PVector
+import processing.opengl.PGL
+import processing.opengl.PGraphicsOpenGL
+import processing.opengl.PShader
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedDeque
 
@@ -10,54 +13,78 @@ import java.util.concurrent.ConcurrentLinkedDeque
  */
 class S20250630a : ExtendedPApplet(P3D)
 {
-    private val palette = createPalette("f72585-b5179e-7209b7-560bad-480ca8-3a0ca3-3f37c9-4361ee-4895ef-4cc9f0")
+    private val palette1 = createPalette("250902-38040e-640d14-800e13-ad2831")
+    private val palette2 = createPalette("f72585-b5179e-7209b7-560bad-480ca8-3a0ca3-3f37c9-4361ee-4895ef-4cc9f0")
     private val eye = PVector(0.0f, 0.0f, 2.0f)
     private val center = PVector(0.0f, 0.0f, 0.0f)
-    private val fov = PI * 0.3f
-    private val far = 10.0f
-    private val icosphere = HalfEdgeMesh()
-    private val walkers = List(5) { Walker(0.33f) }
+    private val fov = PI * 0.25f
     private val fps = 60.0f
+    private val mesh = Icosahedron()
+    private val randomWalks = listOf(
+        RandomWalk(palette1, 0.6f, 3, 3, 30),
+        RandomWalk(palette2, 0.0f, 4, 6, 120),
+    )
+    private var bgShader: PShader? = null
 
     override fun setup()
     {
-        perspective(fov, aspect, 0.1f, far)
+        perspective(fov, aspect, 0.1f, 10.0f)
         camera(eye.x, eye.y, eye.z, center.x, center.y, center.z, 0.0f, 1.0f, 0.0f)
+        randomWalks.forEach { it.init() }
 
-        val mesh = Icosahedron()
-        icosphere.buildMesh(mesh)
-        repeat(4)
-        {
-            icosphere.subdivide { v0, v1 -> PVector.lerp(v0, v1, random(0.3f, 0.7f)).normalize() }
-        }
-        val error = icosphere.validate()
-        if (error.isNotEmpty())
-        {
-            throw IllegalStateException("Invalid mesh state: $error")
-        }
-
-        walkers.forEach { it.init() }
+        bgShader = loadShader(
+            this::class.java.classLoader.getResource("shaders/gradation.glsl")?.path)
+        bgShader?.set("resolution", (width * pixelDensity).toFloat(), (height * pixelDensity).toFloat())
+        bgShader?.set("direction", 0.0f, -1.0f)
+        bgShader?.set("startColor", 0.0f, 0.0f, 0.0f)
+        bgShader?.set("endColor", 0.41f, 0.41f, 0.44f)
 
         frameRate(fps)
     }
 
     override fun draw()
     {
-        background(0)
+        background(30.0f, 30.0f, 36.0f)
 
-        walkers.forEach { it.update() }
+        // background
+        (g as PGraphicsOpenGL).pushProjection()
+        ortho(-1.0f, 1.0f, -1.0f, 1.0f, -10.0f, 10.0f)
+        shader(bgShader)
+        pushStyle()
+        noStroke()
+        fill(255.0f)
+        rect(-1.0f, -1.0f, 2.0f, 2.0f)
+        popStyle()
+        resetShader()
+        (g as PGraphicsOpenGL).popProjection()
+
+        // reset depth buffer
+        val pgl = beginPGL()
+        pgl.clear(PGL.DEPTH_BUFFER_BIT)
+        endPGL()
+
+        randomWalks.forEach { it.update() }
 
         pushMatrix()
         rotateY(frameCount * 0.008f)
         rotateX(frameCount * 0.013f)
-        walkers.forEach { it.draw() }
+
+        // inner
+        pushMatrix()
+        scale(0.5f)
+        randomWalks[0].draw()
+        popMatrix()
+
+        // outer
+        randomWalks[1].draw()
+
         popMatrix()
     }
 
     override fun keyPressed()
     {
         super.keyPressed()
-        walkers.forEach { it.init() }
+        randomWalks.forEach { it.init() }
     }
 
     private inner class Icosahedron : MeshData
@@ -108,184 +135,218 @@ class S20250630a : ExtendedPApplet(P3D)
         override fun getFaces(): List<Triple<Int, Int, Int>> = faces.toList()
     }
 
-    private inner class Walker(private val elementHeight: Float)
+    private inner class RandomWalk(private val palette: IntArray, private val elementHeight: Float, numDivision: Int, numWalkers: Int, maxElements: Int)
     {
-        private val elements: Queue<WalkerElement> = ConcurrentLinkedDeque()
-        private val maxElements = 100
-
-        fun init()
-        {
-            elements.clear()
-            elements.add(WalkerElement(hashCode(), random(icosphere.getFaceCount().toFloat()).toInt(), elementHeight))
-        }
-
-        fun getElements(): List<WalkerElement> = elements.toList()
-
-        fun update()
-        {
-            val newElement = WalkerElement(hashCode(), elements.last().getNextFace(), elementHeight)
-            newElement.stretch(500L) { easeOutPolynomial(it, 4.0f) }
-            elements.add(newElement)
-
-            if (elements.count { !it.isRemoved() } > maxElements)
-            {
-                val first = elements.first { !it.isRemoved() }
-                first.remove()
-                first.stretch(500L, { elements.remove(first) }) { easeOutPolynomial(1.0f - it, 4.0f) }
-            }
-        }
-
-        fun draw()
-        {
-            elements.forEach { it.draw() }
-        }
-    }
-
-    private inner class WalkerElement(private val group: Int, private val face: Int, baseHeight: Float)
-    {
-        private val bottomFace: List<PVector>
-        private val center: PVector
-        private val normal: PVector
-        private val color = palette.random()
-        @Volatile private var alpha = 0.0f
-        private val maxHeight: Float
-        @Volatile private var currHeight = 0.0f
-        private var stretchThread: Thread? = null
-        @Volatile private var isStretchInterrupted = false
-        private var isRemoved = false
+        private val icosphere = HalfEdgeMesh()
+        private val walkers = List(numWalkers) { Walker(elementHeight, maxElements) }
 
         init
         {
-            bottomFace = icosphere.getFaceVertices(face)
-                .map { icosphere.getVertexPosition(it) ?: throw IllegalArgumentException("Invalid face index: $face") }
-                .toList()
-            center = PVector.add(PVector.add(bottomFace[0], bottomFace[1]), bottomFace[2]).div(3.0f)
-            normal = center.copy().normalize()
-            val k = 1.7f
-            this.maxHeight = noise(
-                ((center.x * 0.5f + 0.5f) + (center.y + 0.5f + 1.5f) + (center.z + 0.5f + 2.5f)) * k,
-                frameCount / fps * 0.2f
-            ) * baseHeight
-        }
-
-        fun getFace(): Int = face
-
-        fun remove()
-        {
-            isRemoved = true
-        }
-
-        fun isRemoved(): Boolean = isRemoved
-
-        fun stretch(maxMillis: Long, onFinished: () -> Unit = {}, easing: (Float) -> Float)
-        {
-            // finish the thread
-            isStretchInterrupted = true
-            stretchThread?.join()
-            isStretchInterrupted = false
-
-            // start a new thread
-            stretchThread = Thread {
-                var t = 0L
-                val deltaT = (1000L / fps).toLong()
-                val maxT = maxMillis
-                while (t < maxT)
-                {
-                    if (isStretchInterrupted) break
-                    t += deltaT
-                    val factor = easing(t.toFloat() / maxT.toFloat())
-                    currHeight = factor * maxHeight
-                    alpha = factor
-                    if (t > maxT) break
-                    Thread.sleep(deltaT)
-                }
-                onFinished()
-            }
-            stretchThread?.start()
-        }
-
-        fun getNextFace(): Int
-        {
-            val others = walkers.map { it.getElements() }.flatten().filter { it.getFace() != face }
-
-            val neighbors = icosphere.getFaceNeighbors(face).toMutableList()
-            // remove the location where walkers are already located
-            neighbors.removeIf { neighbor -> others.any { it.face == neighbor } }
-            if (neighbors.isEmpty())
+            icosphere.buildMesh(mesh)
+            repeat(numDivision)
             {
-                return icosphere.getFaceNeighbors(face).random()
+                icosphere.subdivide { v0, v1 -> PVector.lerp(v0, v1, random(0.3f, 0.7f)).normalize() }
             }
-
-            val weights = neighbors.map { neighbor ->
-                // calc the center of gravity
-                val c = icosphere.getFaceVertices(neighbor).map { v -> icosphere.getVertexPosition(v) }
-                    .reduce { acc, p -> PVector.add(acc, p) }?.div(3.0f)!!
-                1.0f / calcLocalDensity(c, others)
-            }.toMutableList()
-
-            // finite check
-            weights.forEach { if (!it.isFinite()) return neighbors.random() }
-
-            // normalize weights
-            val sumWeights = weights.sum()
-            weights.forEachIndexed { i, weight -> weights[i] = weight / sumWeights }
-
-            // return neighbors[weights.withIndex().maxBy { it.value }.index]
-
-            // randomly retrieve considering weights
-            val rand = random(1.0f)
-            var sum = 0.0f
-            for (i in 0 until weights.size - 1)
+            val error = icosphere.validate()
+            if (error.isNotEmpty())
             {
-                sum += weights[i]
-                if (rand < sum)
-                {
-                    return neighbors[i]
-                }
+                throw IllegalStateException("Invalid mesh state: $error")
             }
-            return neighbors.last()
         }
 
-        private fun calcLocalDensity(pos: PVector, others: Collection<WalkerElement>): Float
+        fun init()
         {
-            val theta = acos(pos.z)
-            val phi = atan2(pos.y, pos.x)
+            walkers.forEach { it.init() }
+        }
 
-            // calculate density based on spherical distance
-            return others.map { other ->
-                val oPos = other.center
-                val oTheta = acos(oPos.z)
-                val oPhi = atan2(oPos.y, oPos.x)
-                val d = haversine(theta, phi, oTheta, oPhi, 1.0f)
-                val k = if (other.group == this.group) 4.0f else 1.0f
-                k * exp(-16.0f * d)
-            }.sum()
+        fun update()
+        {
+            walkers.forEach { it.update() }
         }
 
         fun draw()
         {
-            val top = PVector.mult(normal, currHeight).add(center)
+            walkers.forEach { it.draw() }
+        }
 
-            pushStyle()
-            noStroke()
-            fill(color, alpha * 120.0f)
+        private inner class Walker(private val elementHeight: Float, private val maxElements: Int)
+        {
+            private val elements: Queue<WalkerElement> = ConcurrentLinkedDeque()
 
-            // bottom
+            fun init()
+            {
+                elements.clear()
+                elements.add(WalkerElement(hashCode(), random(icosphere.getFaceCount().toFloat()).toInt(), elementHeight))
+            }
+
+            fun getElements(): List<WalkerElement> = elements.toList()
+
+            fun update()
+            {
+                val newElement = WalkerElement(hashCode(), elements.last().getNextFace(), elementHeight)
+                newElement.stretch(500L) { easeOutPolynomial(it, 4.0f) }
+                elements.add(newElement)
+
+                if (elements.count { !it.isRemoved() } > maxElements)
+                {
+                    val first = elements.first { !it.isRemoved() }
+                    first.remove()
+                    first.stretch(500L, { elements.remove(first) }) { easeOutPolynomial(1.0f - it, 4.0f) }
+                }
+            }
+
+            fun draw()
+            {
+                elements.forEach { it.draw() }
+            }
+        }
+
+        private inner class WalkerElement(private val group: Int, private val face: Int, baseHeight: Float)
+        {
+            private val bottomFace: List<PVector>
+            private val center: PVector
+            private val normal: PVector
+            private val color = palette.random()
+            @Volatile private var alpha = 0.0f
+            private val maxHeight: Float
+            @Volatile private var currHeight = 0.0f
+            private var stretchThread: Thread? = null
+            @Volatile private var isStretchInterrupted = false
+            private var isRemoved = false
+
+            init
+            {
+                bottomFace = icosphere.getFaceVertices(face)
+                    .map { icosphere.getVertexPosition(it) ?: throw IllegalArgumentException("Invalid face index: $face") }
+                    .toList()
+                center = PVector.add(PVector.add(bottomFace[0], bottomFace[1]), bottomFace[2]).div(3.0f)
+                normal = center.copy().normalize()
+                val k = 1.7f
+                this.maxHeight = noise(
+                    ((center.x * 0.5f + 0.5f) + (center.y + 0.5f + 1.5f) + (center.z + 0.5f + 2.5f)) * k,
+                    frameCount / fps * 0.2f
+                ) * baseHeight
+            }
+
+            fun getFace(): Int = face
+
+            fun remove()
+            {
+                isRemoved = true
+            }
+
+            fun isRemoved(): Boolean = isRemoved
+
+            fun stretch(maxMillis: Long, onFinished: () -> Unit = {}, easing: (Float) -> Float)
+            {
+                // finish the thread
+                isStretchInterrupted = true
+                stretchThread?.join()
+                isStretchInterrupted = false
+
+                // start a new thread
+                stretchThread = Thread {
+                    var t = 0L
+                    val deltaT = (1000L / fps).toLong()
+                    val maxT = maxMillis
+                    while (t < maxT)
+                    {
+                        if (isStretchInterrupted) break
+                        t += deltaT
+                        val factor = easing(t.toFloat() / maxT.toFloat())
+                        currHeight = factor * maxHeight
+                        alpha = factor
+                        if (t > maxT) break
+                        Thread.sleep(deltaT)
+                    }
+                    onFinished()
+                }
+                stretchThread?.start()
+            }
+
+            fun getNextFace(): Int
+            {
+                val others = walkers.map { it.getElements() }.flatten().filter { it.getFace() != face }
+
+                val neighbors = icosphere.getFaceNeighbors(face).toMutableList()
+                // remove the location where walkers are already located
+                neighbors.removeIf { neighbor -> others.any { it.face == neighbor } }
+                if (neighbors.isEmpty())
+                {
+                    return icosphere.getFaceNeighbors(face).random()
+                }
+
+                val weights = neighbors.map { neighbor ->
+                    // calc the center of gravity
+                    val c = icosphere.getFaceVertices(neighbor).map { v -> icosphere.getVertexPosition(v) }
+                        .reduce { acc, p -> PVector.add(acc, p) }?.div(3.0f)!!
+                    1.0f / calcLocalDensity(c, others)
+                }.toMutableList()
+
+                // finite check
+                weights.forEach { if (!it.isFinite()) return neighbors.random() }
+
+                // normalize weights
+                val sumWeights = weights.sum()
+                weights.forEachIndexed { i, weight -> weights[i] = weight / sumWeights }
+
+                // return neighbors[weights.withIndex().maxBy { it.value }.index]
+
+                // randomly retrieve considering weights
+                val rand = random(1.0f)
+                var sum = 0.0f
+                for (i in 0 until weights.size - 1)
+                {
+                    sum += weights[i]
+                    if (rand < sum)
+                    {
+                        return neighbors[i]
+                    }
+                }
+                return neighbors.last()
+            }
+
+            private fun calcLocalDensity(pos: PVector, others: Collection<WalkerElement>): Float
+            {
+                val theta = acos(pos.z)
+                val phi = atan2(pos.y, pos.x)
+
+                // calculate density based on spherical distance
+                return others.map { other ->
+                    val oPos = other.center
+                    val oTheta = acos(oPos.z)
+                    val oPhi = atan2(oPos.y, oPos.x)
+                    val d = haversine(theta, phi, oTheta, oPhi, 1.0f)
+                    val k = if (other.group == this.group) 4.0f else 1.0f
+                    k * exp(-16.0f * d)
+                }.sum()
+            }
+
+            fun draw()
+            {
+                val top = PVector.mult(normal, currHeight).add(center)
+
+                pushStyle()
+                noStroke()
+                fill(color, alpha * 180.0f)
+
+                // bottom
 //            beginShape()
 //            bottomFace.forEach { vertex(it.x, it.y, it.z) }
 //            endShape(CLOSE)
 
-            // sides
-            for (i in 0 until 3)
-            {
-                beginShape()
-                vertex(bottomFace[i].x, bottomFace[i].y, bottomFace[i].z)
-                vertex(bottomFace[(i + 1) % 3].x, bottomFace[(i + 1) % 3].y, bottomFace[(i + 1) % 3].z)
-                vertex(top.x, top.y, top.z)
-                endShape(CLOSE)
-            }
+                // sides
+                for (i in 0 until 3)
+                {
+                    beginShape()
+                    vertex(bottomFace[i].x, bottomFace[i].y, bottomFace[i].z)
+                    vertex(bottomFace[(i + 1) % 3].x, bottomFace[(i + 1) % 3].y, bottomFace[(i + 1) % 3].z)
+                    vertex(top.x, top.y, top.z)
+                    endShape(CLOSE)
+                }
 
-            popStyle()
+                popStyle()
+            }
         }
     }
 }
