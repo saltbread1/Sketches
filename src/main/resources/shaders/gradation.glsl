@@ -10,9 +10,10 @@ uniform vec3 endColor;
 
 void main()
 {
-    vec2 uv = (gl_FragCoord.xy*2.- resolution)/ resolution;
+    vec2 uv = (gl_FragCoord.xy*2.- resolution) / resolution;
     float t = dot(uv, normalize(direction));
     t = t * 0.5 + 0.5;
+    t = clamp(t, 0.0f, 1.0f);
     vec3 col = mix(startColor, endColor, t);
     gl_FragColor = vec4(fract(col), 1.);
 }
