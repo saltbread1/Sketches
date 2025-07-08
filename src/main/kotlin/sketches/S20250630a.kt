@@ -13,10 +13,10 @@ class S20250630a : ExtendedPApplet(P3D)
     private val palette = createPalette("f72585-b5179e-7209b7-560bad-480ca8-3a0ca3-3f37c9-4361ee-4895ef-4cc9f0")
     private val eye = PVector(0.0f, 0.0f, 2.0f)
     private val center = PVector(0.0f, 0.0f, 0.0f)
-    private val fov = HALF_PI
+    private val fov = PI * 0.3f
     private val far = 10.0f
     private val icosphere = HalfEdgeMesh()
-    private val walkers = List(3) { Walker() }
+    private val walkers = List(5) { Walker(0.33f) }
     private val fps = 60.0f
 
     override fun setup()
@@ -24,10 +24,12 @@ class S20250630a : ExtendedPApplet(P3D)
         perspective(fov, aspect, 0.1f, far)
         camera(eye.x, eye.y, eye.z, center.x, center.y, center.z, 0.0f, 1.0f, 0.0f)
 
-        icosphere.buildMesh(Icosahedron())
-        icosphere.subdivide { v0, v1 -> PVector.lerp(v0, v1, 0.5f).normalize() }
-        icosphere.subdivide { v0, v1 -> PVector.lerp(v0, v1, 0.5f).normalize() }
-        icosphere.subdivide { v0, v1 -> PVector.lerp(v0, v1, 0.5f).normalize() }
+        val mesh = Icosahedron()
+        icosphere.buildMesh(mesh)
+        repeat(4)
+        {
+            icosphere.subdivide { v0, v1 -> PVector.lerp(v0, v1, random(0.3f, 0.7f)).normalize() }
+        }
         val error = icosphere.validate()
         if (error.isNotEmpty())
         {
@@ -55,7 +57,7 @@ class S20250630a : ExtendedPApplet(P3D)
     override fun keyPressed()
     {
         super.keyPressed()
-        redraw()
+        walkers.forEach { it.init() }
     }
 
     private inner class Icosahedron : MeshData
@@ -106,30 +108,30 @@ class S20250630a : ExtendedPApplet(P3D)
         override fun getFaces(): List<Triple<Int, Int, Int>> = faces.toList()
     }
 
-    private inner class Walker
+    private inner class Walker(private val elementHeight: Float)
     {
         private val elements: Queue<WalkerElement> = ConcurrentLinkedDeque()
-        private val maxElements = 32
+        private val maxElements = 100
 
         fun init()
         {
             elements.clear()
-            elements.add(WalkerElement(hashCode(), random(icosphere.getFaceCount().toFloat()).toInt()))
+            elements.add(WalkerElement(hashCode(), random(icosphere.getFaceCount().toFloat()).toInt(), elementHeight))
         }
 
         fun getElements(): List<WalkerElement> = elements.toList()
 
         fun update()
         {
-            val newElement = WalkerElement(hashCode(), elements.last().getNextFace())
-            newElement.stretch(300L) { easeOutPolynomial(it, 4.0f) }
+            val newElement = WalkerElement(hashCode(), elements.last().getNextFace(), elementHeight)
+            newElement.stretch(500L) { easeOutPolynomial(it, 4.0f) }
             elements.add(newElement)
 
             if (elements.count { !it.isRemoved() } > maxElements)
             {
                 val first = elements.first { !it.isRemoved() }
                 first.remove()
-                first.stretch(300L, { elements.remove(first) }) { easeOutPolynomial(1.0f - it, 4.0f) }
+                first.stretch(500L, { elements.remove(first) }) { easeOutPolynomial(1.0f - it, 4.0f) }
             }
         }
 
@@ -139,7 +141,7 @@ class S20250630a : ExtendedPApplet(P3D)
         }
     }
 
-    private inner class WalkerElement(private val group: Int, private val face: Int)
+    private inner class WalkerElement(private val group: Int, private val face: Int, baseHeight: Float)
     {
         private val bottomFace: List<PVector>
         private val center: PVector
@@ -160,10 +162,10 @@ class S20250630a : ExtendedPApplet(P3D)
             center = PVector.add(PVector.add(bottomFace[0], bottomFace[1]), bottomFace[2]).div(3.0f)
             normal = center.copy().normalize()
             val k = 1.7f
-            maxHeight = noise(
+            this.maxHeight = noise(
                 ((center.x * 0.5f + 0.5f) + (center.y + 0.5f + 1.5f) + (center.z + 0.5f + 2.5f)) * k,
                 frameCount / fps * 0.2f
-            ) * 0.71f
+            ) * baseHeight
         }
 
         fun getFace(): Int = face
