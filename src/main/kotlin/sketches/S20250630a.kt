@@ -2,7 +2,7 @@ package sketches
 import mesh.HalfEdgeMesh
 import mesh.MeshData
 import processing.core.PVector
-import java.util.Queue
+import java.util.*
 import java.util.concurrent.ConcurrentLinkedDeque
 
 /**
@@ -114,20 +114,14 @@ class S20250630a : ExtendedPApplet(P3D)
         fun init()
         {
             elements.clear()
-            elements.add(WalkerElement(random(icosphere.getFaceCount().toFloat()).toInt()))
+            elements.add(WalkerElement(hashCode(), random(icosphere.getFaceCount().toFloat()).toInt()))
         }
+
+        fun getElements(): List<WalkerElement> = elements.toList()
 
         fun update()
         {
-            val last = elements.last().getFace()
-            var next = last
-            val maxItr = 40
-            var cnt = 0
-            while (walkers.any { walker -> walker.elements.any { it.getFace() == next } } && cnt++ < maxItr)
-            {
-                next = icosphere.getFaceNeighbors(last).random()
-            }
-            val newElement = WalkerElement(next)
+            val newElement = WalkerElement(hashCode(), elements.last().getNextFace())
             newElement.stretch(300L) { easeOutPolynomial(it, 4.0f) }
             elements.add(newElement)
 
@@ -145,7 +139,7 @@ class S20250630a : ExtendedPApplet(P3D)
         }
     }
 
-    private inner class WalkerElement(private val face: Int)
+    private inner class WalkerElement(private val group: Int, private val face: Int)
     {
         private val bottomFace: List<PVector>
         private val center: PVector
@@ -174,6 +168,13 @@ class S20250630a : ExtendedPApplet(P3D)
 
         fun getFace(): Int = face
 
+        fun remove()
+        {
+            isRemoved = true
+        }
+
+        fun isRemoved(): Boolean = isRemoved
+
         fun stretch(maxMillis: Long, onFinished: () -> Unit = {}, easing: (Float) -> Float)
         {
             // finish the thread
@@ -201,12 +202,63 @@ class S20250630a : ExtendedPApplet(P3D)
             stretchThread?.start()
         }
 
-        fun remove()
+        fun getNextFace(): Int
         {
-            isRemoved = true
+            val others = walkers.map { it.getElements() }.flatten().filter { it.getFace() != face }
+
+            val neighbors = icosphere.getFaceNeighbors(face).toMutableList()
+            // remove the location where walkers are already located
+            neighbors.removeIf { neighbor -> others.any { it.face == neighbor } }
+            if (neighbors.isEmpty())
+            {
+                return icosphere.getFaceNeighbors(face).random()
+            }
+
+            val weights = neighbors.map { neighbor ->
+                // calc the center of gravity
+                val c = icosphere.getFaceVertices(neighbor).map { v -> icosphere.getVertexPosition(v) }
+                    .reduce { acc, p -> PVector.add(acc, p) }?.div(3.0f)!!
+                1.0f / calcLocalDensity(c, others)
+            }.toMutableList()
+
+            // finite check
+            weights.forEach { if (!it.isFinite()) return neighbors.random() }
+
+            // normalize weights
+            val sumWeights = weights.sum()
+            weights.forEachIndexed { i, weight -> weights[i] = weight / sumWeights }
+
+            // return neighbors[weights.withIndex().maxBy { it.value }.index]
+
+            // randomly retrieve considering weights
+            val rand = random(1.0f)
+            var sum = 0.0f
+            for (i in 0 until weights.size - 1)
+            {
+                sum += weights[i]
+                if (rand < sum)
+                {
+                    return neighbors[i]
+                }
+            }
+            return neighbors.last()
         }
 
-        fun isRemoved(): Boolean = isRemoved
+        private fun calcLocalDensity(pos: PVector, others: Collection<WalkerElement>): Float
+        {
+            val theta = acos(pos.z)
+            val phi = atan2(pos.y, pos.x)
+
+            // calculate density based on spherical distance
+            return others.map { other ->
+                val oPos = other.center
+                val oTheta = acos(oPos.z)
+                val oPhi = atan2(oPos.y, oPos.x)
+                val d = haversine(theta, phi, oTheta, oPhi, 1.0f)
+                val k = if (other.group == this.group) 4.0f else 1.0f
+                k * exp(-16.0f * d)
+            }.sum()
+        }
 
         fun draw()
         {
