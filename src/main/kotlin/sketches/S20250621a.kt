@@ -116,11 +116,6 @@ class S20250621a : ExtendedPApplet(P2D)
         pg.rotateZ(yaw)
     }
 
-    private fun sigmoid(x: Float): Float
-    {
-        return 1.0f / (1.0f + exp(-x))
-    }
-
     override fun keyPressed()
     {
         super.keyPressed()

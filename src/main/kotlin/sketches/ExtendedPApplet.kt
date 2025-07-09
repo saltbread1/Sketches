@@ -105,6 +105,11 @@ abstract class ExtendedPApplet(private val renderer: String, protected val isSav
         return 1.0f + (c3 * (x - 1.0f) + c1) * sq(x - 1.0f)
     }
 
+    protected fun sigmoid(x: Float, a: Float = 1.0f): Float
+    {
+        return 1.0f / (1.0f + exp(-a * x))
+    }
+
     /**
      * Calculate two points on the sphere.
      */
