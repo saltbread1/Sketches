@@ -6,11 +6,9 @@
   <component name="ChangeListManager">
     <list default="true" id="604821d5-04d4-484a-bce1-fe37c1651b17" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/sketches/S20250621a.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/sketches/S20250621a.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/sketches/S20250623a.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/sketches/S20250623a.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/sketches/S20250625a.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/sketches/S20250625a.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/sketches/S20250625b.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/sketches/S20250625b.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/sketches/ExtendedPApplet.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/sketches/ExtendedPApplet.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/sketches/S20250630a.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/sketches/S20250630a.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/shaders/gradation.glsl" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/shaders/gradation.frag" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -39,6 +37,13 @@
       </state>
     </system>
   </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="vs-template" />
+      </list>
+    </option>
+  </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
@@ -47,6 +52,9 @@
   &quot;associatedIndex&quot;: 5
 }</component>
   <component name="ProjectId" id="2zOO8raPFlWRGeNc8YNo4upmnCe" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="1" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />

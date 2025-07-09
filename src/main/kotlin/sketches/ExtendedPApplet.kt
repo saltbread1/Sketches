@@ -38,6 +38,8 @@ abstract class ExtendedPApplet(private val renderer: String, protected val isSav
         }
     }
 
+    // -------- Sketch Utils -------- //
+
     protected fun createPalette(colors: String): IntArray =
         colors.split("-").map { it.toInt(16) or (0xff000000.toInt()) }.toIntArray()
 
@@ -54,7 +56,7 @@ abstract class ExtendedPApplet(private val renderer: String, protected val isSav
     protected fun saveFrameName(clazz: KClass<*>): String =
         "output${File.separator}${clazz.simpleName}${File.separator}######.png"
 
-    protected fun makeMovie(clazz: KClass<*>, inputFPS: Int, outputFPS: Int): String
+    protected fun makeMovie(clazz: KClass<*>, inputFPS: Int, outputFPS: Int = inputFPS): String
     {
         val outputDir = "output${File.separator}${clazz.simpleName}${File.separator}"
         val imgName = "$outputDir%06d.png"
@@ -64,6 +66,7 @@ abstract class ExtendedPApplet(private val renderer: String, protected val isSav
         return process.inputStream.bufferedReader().readText()
     }
 
+    // -------- Math Utils -------- //
 
     protected fun clamp(value: Int, min: Int, max: Int): Int = min(max(min, value), max)
 
@@ -112,6 +115,7 @@ abstract class ExtendedPApplet(private val renderer: String, protected val isSav
         return 2.0f * radius * asin(sqrt(sq(sin(latitude / 2.0f)) + cos(latitude1) * cos(latitude2) * sq(sin(longitude / 2.0f))))
     }
 
+    // -------- GL Utils -------- //
 
     protected fun viewToWorld(v: PVector): PVector
     {
