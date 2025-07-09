@@ -5,10 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="604821d5-04d4-484a-bce1-fe37c1651b17" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/sketches/ExtendedPApplet.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/sketches/ExtendedPApplet.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/sketches/S20250630a.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/sketches/S20250630a.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/shaders/gradation.glsl" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/shaders/gradation.frag" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -41,6 +40,8 @@
     <option name="RECENT_TEMPLATES">
       <list>
         <option value="vs-template" />
+        <option value="Class" />
+        <option value="Kotlin Class" />
       </list>
     </option>
   </component>
@@ -158,6 +159,7 @@
       <option name="presentableId" value="Default" />
       <updated>1751598497678</updated>
       <workItem from="1751598499130" duration="47499000" />
+      <workItem from="1752048620316" duration="3891000" />
     </task>
     <servers />
   </component>
