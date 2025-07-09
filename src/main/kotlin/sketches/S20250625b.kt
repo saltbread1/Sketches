@@ -38,7 +38,7 @@ class S20250625b : ExtendedPApplet(P3D)
         strokeWeight(0.5f)
         stroke(fogColor)
         polygons3D.forEach {
-            val col = palette[random(palette.size.toFloat()).toInt()]
+            val col = palette.random()
             fill(col)
             it.draw()
         }
@@ -252,7 +252,7 @@ class S20250625b : ExtendedPApplet(P3D)
         {
             val vertices = bottomFace.getVertices()
             val hv = PVector(0.0f, -height, 0.0f)
-            val col = palette[random(palette.size.toFloat()).toInt()]
+            val col = palette.random()
 
             // top
             surfaces.add(AttribPolygon(vertices.asSequence()

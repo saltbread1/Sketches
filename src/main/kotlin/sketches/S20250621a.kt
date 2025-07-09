@@ -28,8 +28,8 @@ class S20250621a : ExtendedPApplet(P2D)
         rectList.add(Rect(-aspect, -1.0f, 2.0f * aspect, 2.0f))
         (0 until 14).forEach { _ ->
             val newRectList = mutableListOf<Rect>()
-            rectList.forEach { rect ->
-                if (rect.w * rect.h < 1.6e-4f) return@forEach
+            rectList.forEach inner@ { rect ->
+                if (rect.w * rect.h < 1.6e-4f) return@inner
                 newRectList.addAll(divide(rect))
             }
             rectList.clear()
@@ -80,7 +80,7 @@ class S20250621a : ExtendedPApplet(P2D)
 
     private fun getColor(alpha: Float): Int
     {
-        val col = palette[random(palette.size.toFloat()).toInt()]
+        val col = palette.random()
         return (col and 0xffffff) or (((alpha * 0xff).toInt() shl 24) and 0xff000000.toInt())
     }
 

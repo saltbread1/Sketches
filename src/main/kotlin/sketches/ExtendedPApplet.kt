@@ -38,18 +38,18 @@ abstract class ExtendedPApplet(private val renderer: String, protected val isSav
         }
     }
 
-    protected fun timestamp(format: String): String
+    protected fun createPalette(colors: String): IntArray =
+        colors.split("-").map { it.toInt(16) or (0xff000000.toInt()) }.toIntArray()
+
+    protected fun timestamp(format: String = "yyyyMMddHHmmss"): String
     {
         val now = ZonedDateTime.now(ZoneId.of("Asia/Tokyo"))
         val formatter = DateTimeFormatter.ofPattern(format)
         return now.format(formatter)
     }
 
-    protected fun createPalette(colors: String): IntArray =
-        colors.split("-").map { it.toInt(16) or (0xff000000.toInt()) }.toIntArray()
-
     protected fun saveName(clazz: KClass<*>): String =
-        "output${File.separator}${clazz.simpleName}${File.separator}${timestamp("yyyyMMddHHmmss")}-######.png"
+        "output${File.separator}${clazz.simpleName}${File.separator}${timestamp()}-######.png"
 
     protected fun saveFrameName(clazz: KClass<*>): String =
         "output${File.separator}${clazz.simpleName}${File.separator}######.png"
@@ -58,11 +58,12 @@ abstract class ExtendedPApplet(private val renderer: String, protected val isSav
     {
         val outputDir = "output${File.separator}${clazz.simpleName}${File.separator}"
         val imgName = "$outputDir%06d.png"
-        val movieName = "$outputDir${timestamp("yyyyMMddHHmmss")}.mp4"
+        val movieName = "$outputDir${timestamp()}.mp4"
         val command = "ffmpeg -y -loglevel 16 -r $inputFPS -i $imgName -vcodec libx264 -pix_fmt yuv420p -r $outputFPS $movieName"
         val process = ProcessBuilder(*command.split(" ").toTypedArray()).redirectErrorStream(true).start()
         return process.inputStream.bufferedReader().readText()
     }
+
 
     protected fun clamp(value: Int, min: Int, max: Int): Int = min(max(min, value), max)
 
@@ -95,6 +96,23 @@ abstract class ExtendedPApplet(private val renderer: String, protected val isSav
     protected fun easeInOutPolynomial(x: Float, d: Float): Float =
         if (x < 0.5f) 0.5f * pow(2.0f * x, d) else 1.0f - 0.5f * pow(2.0f * (1.0f - x), d)
 
+    protected fun easeOutBack(x: Float, c1: Float = 1.70158f): Float
+    {
+        val c3 = c1 + 1.0f
+        return 1.0f + (c3 * (x - 1.0f) + c1) * sq(x - 1.0f)
+    }
+
+    /**
+     * Calculate two points on the sphere.
+     */
+    protected fun haversine(latitude1: Float, longitude1: Float, latitude2: Float, longitude2: Float, radius: Float = 1.0f): Float
+    {
+        val latitude = latitude2 - latitude1
+        val longitude = longitude2 - longitude1
+        return 2.0f * radius * asin(sqrt(sq(sin(latitude / 2.0f)) + cos(latitude1) * cos(latitude2) * sq(sin(longitude / 2.0f))))
+    }
+
+
     protected fun viewToWorld(v: PVector): PVector
     {
         return viewToWorld(v, g)
@@ -115,15 +133,5 @@ abstract class ExtendedPApplet(private val renderer: String, protected val isSav
         val up = PVector(viewMat.m01, viewMat.m11, viewMat.m21)
         val forward = PVector(viewMat.m02, viewMat.m12, viewMat.m22)
         return PVector.mult(side, v.x).add(PVector.mult(up, v.y)).add(PVector.mult(forward, v.z)).normalize()
-    }
-
-    /**
-     * Calculate two points on the sphere.
-     */
-    protected fun haversine(latitude1: Float, longitude1: Float, latitude2: Float, longitude2: Float, radius: Float): Float
-    {
-        val latitude = latitude2 - latitude1
-        val longitude = longitude2 - longitude1
-        return 2.0f * radius * asin(sqrt(sq(sin(latitude / 2.0f)) + cos(latitude1) * cos(latitude2) * sq(sin(longitude / 2.0f))))
     }
 }

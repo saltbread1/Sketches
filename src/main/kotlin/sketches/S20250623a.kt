@@ -127,7 +127,7 @@ class S20250623a : ExtendedPApplet(P2D)
             pg.pushStyle()
             pg.noStroke()
             rects.forEach { rect ->
-                pg.fill(palette[random(palette.size.toFloat()).toInt()], 235.0f)
+                pg.fill(palette.random(), 235.0f)
                 rect.draw(pg)
             }
             pg.popStyle()
@@ -197,7 +197,7 @@ class S20250623a : ExtendedPApplet(P2D)
             this.pg = pg
             x = random(pg.width.toFloat()).toInt()
             y = random(pg.height.toFloat()).toInt()
-            color = palette[random(palette.size.toFloat()).toInt()]
+            color = palette.random()
             life = random(500.0f, 2000.0f).toInt()
             dir = random(8.0f).toInt()
             val rand = random(1.0f)

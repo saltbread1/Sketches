@@ -20,10 +20,20 @@ class S20250630a : ExtendedPApplet(P3D)
     private val fps = 60.0f
     private val mesh = Icosahedron()
     private val randomWalks = listOf(
-        RandomWalk(palette1, 0.6f, 3, 3, 30),
-        RandomWalk(palette2, 0.0f, 4, 8, 90),
+        RandomWalk(palette1, 0.6f, 3, 3, 36),
+        RandomWalk(palette2, 0.0f, 4, 8, 111),
     )
     private var bgShader: PShader? = null
+    private val totalSaveSec = 20.0f
+
+    override fun settings()
+    {
+        // full HD framebuffer
+        size(960, 540, P3D)
+        pixelDensity(2)
+
+        aspect = width.toFloat() / height.toFloat()
+    }
 
     override fun setup()
     {
@@ -33,7 +43,7 @@ class S20250630a : ExtendedPApplet(P3D)
 
         bgShader = loadShader(
             this::class.java.classLoader.getResource("shaders/gradation.glsl")?.path)
-        bgShader?.set("resolution", (width * pixelDensity).toFloat(), (height * pixelDensity).toFloat())
+        bgShader?.set("resolution", pixelWidth.toFloat(), pixelHeight.toFloat())
         bgShader?.set("direction", width.toFloat(), -height.toFloat())
         bgShader?.set("startColor", 0.24f, 0.23f, 0.56f)
         bgShader?.set("endColor", 0.64f, 0.023f, 0.12f)
@@ -82,7 +92,7 @@ class S20250630a : ExtendedPApplet(P3D)
         if (isSave)
         {
             saveFrame(saveFrameName(this::class))
-            if (frameCount >= fps * 20.0f) exit()
+            if (frameCount >= fps * totalSaveSec) exit()
         }
     }
 
@@ -183,22 +193,22 @@ class S20250630a : ExtendedPApplet(P3D)
             fun init()
             {
                 elements.clear()
-                elements.add(WalkerElement(hashCode(), random(icosphere.getFaceCount().toFloat()).toInt(), elementHeight))
+                elements.add(WalkerElement(hashCode(), random(icosphere.getFaceCount().toFloat()).toInt()))
             }
 
             fun getElementsAsList(): List<WalkerElement> = elements.toList()
 
             fun update()
             {
-                val newElement = WalkerElement(hashCode(), elements.last().getNextFace(), elementHeight, random(1.0f) < 0.5f)
-                newElement.transition(500L) { easeOutPolynomial(it, 4.0f) }
+                val newElement = WalkerElement(hashCode(), elements.last().getNextFace(), random(1.0f) < 0.5f)
+                newElement.transition(0.86f) { easeOutBack(it, 8.0f) }
                 elements.add(newElement)
 
                 if (elements.count { !it.isRemoved() } > maxElements)
                 {
                     val first = elements.first { !it.isRemoved() }
                     first.remove()
-                    first.transition(500L, { elements.remove(first) }) { easeOutPolynomial(1.0f - it, 4.0f) }
+                    first.transition(0.72f, { elements.remove(first) }) { easeOutBack(1.0f - it, 4.0f) }
                 }
             }
 
@@ -208,10 +218,7 @@ class S20250630a : ExtendedPApplet(P3D)
             }
         }
 
-        private inner class WalkerElement(private val group: Int,
-                                          private val face: Int,
-                                          baseHeight: Float,
-                                          private val isWire: Boolean = false)
+        private inner class WalkerElement(private val group: Int, private val face: Int, private val isWire: Boolean = false)
         {
             private val bottomFace: List<PVector> = icosphere.getFaceVertices(face)
                 .map { icosphere.getVertexPosition(it) ?: throw IllegalArgumentException("Invalid face index: $face") }
@@ -219,15 +226,14 @@ class S20250630a : ExtendedPApplet(P3D)
             private val center: PVector = PVector.add(PVector.add(bottomFace[0], bottomFace[1]), bottomFace[2]).div(3.0f)
             private val normal: PVector = center.copy().normalize()
             private val color = palette.random()
-            @Volatile private var alpha = 0.0f
             private val maxHeight: Float = noise(
                 ((center.x * 0.5f + 0.5f) + (center.y + 0.5f + 1.5f) + (center.z + 0.5f + 2.5f)) * 1.7f,
                 frameCount / fps * 0.2f
-            ) * baseHeight
-            @Volatile private var currHeight = 0.0f
-            private var stretchThread: Thread? = null
-            @Volatile private var isStretchInterrupted = false
+            ) * elementHeight
+            private val maxAlpha = 200.0f
             private var removed = false
+            @Volatile private var easeFactor = 0.0f
+            @Volatile private var prevThread: Thread? = null
 
             fun remove()
             {
@@ -236,31 +242,26 @@ class S20250630a : ExtendedPApplet(P3D)
 
             fun isRemoved(): Boolean = removed
 
-            fun transition(maxMillis: Long, onFinished: () -> Unit = {}, easing: (Float) -> Float)
+            fun transition(maxSec: Float, onFinished: () -> Unit = {}, easing: (Float) -> Float)
             {
-                // finish the thread
-                isStretchInterrupted = true
-                stretchThread?.join()
-                isStretchInterrupted = false
-
-                // start a new thread
-                stretchThread = Thread {
-                    var t = 0L
-                    val deltaT = (1000L / fps).toLong()
-                    val maxT = maxMillis
-                    while (t < maxT)
-                    {
-                        if (isStretchInterrupted) break
-                        t += deltaT
-                        val factor = easing(t.toFloat() / maxT.toFloat())
-                        currHeight = factor * maxHeight
-                        alpha = factor
-                        if (t > maxT) break
-                        Thread.sleep(deltaT)
+                Thread {
+                    // wait previous thread
+                    prevThread?.join()
+                    // start a new thread
+                    prevThread = Thread {
+                        var t = 0L
+                        val deltaT = (1000L / fps).toLong()
+                        val maxT = maxSec * 1e3f
+                        while (t < maxT)
+                        {
+                            t += deltaT
+                            easeFactor = easing(t / maxT)
+                            Thread.sleep(deltaT)
+                        }
+                        onFinished.invoke()
                     }
-                    onFinished.invoke()
-                }
-                stretchThread?.start()
+                    prevThread?.start()
+                }.start()
             }
 
             fun getNextFace(): Int
@@ -289,8 +290,6 @@ class S20250630a : ExtendedPApplet(P3D)
                 val sumWeights = weights.sum()
                 weights.forEachIndexed { i, weight -> weights[i] = weight / sumWeights }
 
-                // return neighbors[weights.withIndex().maxBy { it.value }.index]
-
                 // randomly retrieve considering weights
                 val rand = random(1.0f)
                 var sum = 0.0f
@@ -315,7 +314,7 @@ class S20250630a : ExtendedPApplet(P3D)
                     val oPos = other.center
                     val oTheta = acos(oPos.z)
                     val oPhi = atan2(oPos.y, oPos.x)
-                    val d = haversine(theta, phi, oTheta, oPhi, 1.0f)
+                    val d = haversine(theta, phi, oTheta, oPhi)
                     val k = if (other.group == this.group) 4.0f else 1.0f
                     k * exp(-16.0f * d)
                 }.sum()
@@ -323,27 +322,28 @@ class S20250630a : ExtendedPApplet(P3D)
 
             fun draw()
             {
-                val top = PVector.mult(normal, currHeight).add(center)
-                val a = alpha * 140.0f
+                val topPos = PVector.mult(normal, easeFactor * maxHeight).add(center)
+                val bottomPos = bottomFace.map { PVector.sub(it, center).mult(easeFactor).add(center) }
+                val alpha = easeFactor * maxAlpha
 
                 pushStyle()
                 if (isWire)
                 {
-                    stroke(color, a)
-                    fill(color, a * 0.4f)
+                    stroke(color, alpha)
+                    fill(color, alpha * 0.2f)
                 }
                 else
                 {
                     noStroke()
-                    fill(color, a)
+                    fill(color, alpha)
                 }
 
                 for (i in 0 until 3)
                 {
                     beginShape()
-                    vertex(bottomFace[i].x, bottomFace[i].y, bottomFace[i].z)
-                    vertex(bottomFace[(i + 1) % 3].x, bottomFace[(i + 1) % 3].y, bottomFace[(i + 1) % 3].z)
-                    vertex(top.x, top.y, top.z)
+                    vertex(bottomPos[i].x, bottomPos[i].y, bottomPos[i].z)
+                    vertex(bottomPos[(i + 1) % 3].x, bottomPos[(i + 1) % 3].y, bottomPos[(i + 1) % 3].z)
+                    vertex(topPos.x, topPos.y, topPos.z)
                     endShape(CLOSE)
                 }
 
