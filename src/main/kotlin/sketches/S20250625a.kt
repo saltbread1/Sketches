@@ -63,7 +63,7 @@ class S20250625a : ExtendedPApplet(P3D)
                 pg.rotate(random(TWO_PI))
                 pg.rectMode(CENTER)
                 pg.noStroke()
-                pg.fill(palette[random(palette.size.toFloat()).toInt()], 77.0f)
+                pg.fill(palette.random(), 77.0f)
                 pg.rect(0.0f, 0.0f, w * random(1.0f, 1.35f), h * random(1.0f, 1.35f))
                 pg.pop()
             }
