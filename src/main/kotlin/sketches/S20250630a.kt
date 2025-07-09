@@ -42,11 +42,13 @@ class S20250630a : ExtendedPApplet(P3D)
         randomWalks.forEach { it.init() }
 
         bgShader = loadShader(
-            this::class.java.classLoader.getResource("shaders/gradation.glsl")?.path)
-        bgShader?.set("resolution", pixelWidth.toFloat(), pixelHeight.toFloat())
-        bgShader?.set("direction", width.toFloat(), -height.toFloat())
-        bgShader?.set("startColor", 0.24f, 0.23f, 0.56f)
-        bgShader?.set("endColor", 0.64f, 0.023f, 0.12f)
+            this::class.java.classLoader.getResource("shaders/gradation.frag")?.path,
+            this::class.java.classLoader.getResource("shaders/gradation.vert")?.path,
+        )
+//        bgShader?.set("startColor", 0.24f, 0.23f, 0.56f)
+//        bgShader?.set("endColor", 0.64f, 0.023f, 0.12f)
+        bgShader?.set("startColor", sq(0.24f), sq(0.23f), sq(0.56f))
+        bgShader?.set("endColor", sq(0.64f), sq(0.023f), sq(0.12f))
 
         frameRate(fps)
     }
@@ -55,29 +57,31 @@ class S20250630a : ExtendedPApplet(P3D)
     {
         background(30.0f, 30.0f, 36.0f)
 
+        val rad = frameCount * 0.004f
+        bgShader?.set("direction", cos(rad), sin(rad))
+
         hint(DISABLE_DEPTH_MASK)
 
         // background
         (g as PGraphicsOpenGL).pushProjection()
         ortho(-1.0f, 1.0f, -1.0f, 1.0f, -10.0f, 10.0f)
-        shader(bgShader)
         pushStyle()
+        shader(bgShader)
         noStroke()
         fill(255.0f)
         rect(-1.0f, -1.0f, 2.0f, 2.0f)
-        popStyle()
         resetShader()
+        popStyle()
         (g as PGraphicsOpenGL).popProjection()
 
         hint(ENABLE_DEPTH_MASK)
 
         randomWalks.forEach { it.update() }
 
-
         // inner
         pushMatrix()
-        rotateY(frameCount * 0.008f)
-        rotateX(frameCount * 0.013f)
+        rotateZ(frameCount * 0.009f)
+        rotateY(frameCount * 0.013f)
         scale(0.5f)
         randomWalks[0].draw()
         popMatrix()
@@ -104,7 +108,7 @@ class S20250630a : ExtendedPApplet(P3D)
 
     override fun exit()
     {
-        if (isSave) println(makeMovie(this::class, fps.toInt(), fps.toInt()))
+        if (isSave) println(makeMovie(this::class, fps.toInt()))
         super.exit()
     }
 
