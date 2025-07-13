@@ -66,6 +66,8 @@ abstract class ExtendedPApplet(private val renderer: String, protected val isSav
         return process.inputStream.bufferedReader().readText()
     }
 
+    protected fun <T> choose(vararg items: T): T = items.random()
+
     // -------- Math Utils -------- //
 
     protected fun clamp(value: Int, min: Int, max: Int): Int = min(max(min, value), max)
