@@ -5,30 +5,44 @@ import processing.core.PVector
 class S20250709a : ExtendedPApplet(P2D)
 {
     private val palette = createPalette("f72585-b5179e-7209b7-560bad-480ca8-3a0ca3-3f37c9-4361ee-4895ef-4cc9f0")
-    private val curves = mutableListOf<Curve>()
+    private val curveSequences = mutableListOf<CurveSequence>()
+    private val maxCurveSequences = 100
 
     override fun setup()
     {
+        init()
         noLoop()
+    }
+
+    private fun init()
+    {
+        curveSequences.clear()
+        repeat(maxCurveSequences)
+        {
+            curveSequences.add(CurveSequence(CubicBezier(
+                PVector(width * 0.5f, height * 0.5f),
+                PVector(random(-1.0f, 1.0f), random(-1.0f, 1.0f)).normalize(),
+                width * random(0.05f, 0.2f),
+                choose(-1, 0, 1),
+            )))
+        }
+        while (curveSequences.any { !it.isFull })
+        {
+            curveSequences.shuffled().filter { !it.isFull }.forEach { it.addCurve(curveSequences) }
+        }
+        curveSequences.shuffle()
     }
 
     override fun draw()
     {
         background(0)
 
-        curves.clear()
+        curveSequences.forEach { it.draw() }
 
-        curves.add(CubicBezier(
-            PVector(width * 0.5f, height * 0.5f),
-            PVector(random(-1.0f, 1.0f), random(-1.0f, 1.0f)).normalize(),
-            200.0f,
-            1
-        ))
-        repeat(100)
+        if (isSave)
         {
-            curves.add(curves.last().nextCurve() ?: return@repeat)
+            saveFrame(saveName(this::class))
         }
-        curves.forEach { it.draw() }
     }
 
     override fun keyPressed()
@@ -37,10 +51,11 @@ class S20250709a : ExtendedPApplet(P2D)
         val seed = System.currentTimeMillis()
         noiseSeed(seed)
         randomSeed(seed)
+        init()
         redraw()
     }
 
-    private abstract inner class Curve
+    private abstract inner class Curve(private val initialLength: Float)
     {
         abstract val startPosition: PVector
         abstract val startDirection: PVector
@@ -56,21 +71,32 @@ class S20250709a : ExtendedPApplet(P2D)
 
         fun nextCurve(): Curve?
         {
-            if (length < 1.0f) return null
-
             val nextLength = length * (0.8f + random(0.2f))
-            val nextType = if (curveType == 0) choose(-1, 1) else choose(0, -curveType)
+            if (nextLength < 1.0f) return null
+            val nextType = if (nextLength < initialLength * 0.5f)
+            {
+                if (curveType == 0) choose(-1, 1) else choose(0, curveType)
+            }
+            else
+            {
+                if (curveType == 0) choose(-1, 0, 1) else choose(0, -curveType)
+            }
 
-            if (nextType == 0)
+            var nextCurve: Curve? = null
+            repeat(100)
             {
-                return CubicBezier(endPosition, endDirection, nextLength, nextType)
+                val rand = random(1.0f)
+                nextCurve = when
+                {
+                    rand < 0.5f -> Arc(endPosition, endDirection, nextLength, nextType, initialLength)
+                    else -> CubicBezier(endPosition, endDirection, nextLength, nextType, initialLength)
+                }
+                if (true)
+                {
+                    return@repeat
+                }
             }
-            val rand = random(1.0f)
-            return when
-            {
-                rand < 0.5f -> Arc(endPosition, endDirection, nextLength, nextType)
-                else -> CubicBezier(endPosition, endDirection, nextLength, nextType)
-            }
+            return nextCurve
         }
 
         abstract fun draw()
@@ -81,7 +107,8 @@ class S20250709a : ExtendedPApplet(P2D)
         override val startDirection: PVector,
         override val length: Float,
         override val curveType: Int,
-    ) : Curve()
+        initialLength: Float = length,
+    ) : Curve(initialLength)
     {
         override val endPosition: PVector
         override val endDirection: PVector
@@ -93,8 +120,7 @@ class S20250709a : ExtendedPApplet(P2D)
 
         init
         {
-            val sign = curveType
-            if (curveType == 0) IllegalArgumentException("curveType must be either -1 or 1")
+            val sign = if (curveType == 0) choose(-1, 1) else curveType
 
             val ns = startDirection.copy().rotate(-HALF_PI * sign)
             val startToEnd = ns.copy().rotate(-random(1.2f) * sign).mult(-length)
@@ -116,8 +142,8 @@ class S20250709a : ExtendedPApplet(P2D)
             noFill()
             stroke(color)
             strokeWeight(4.0f)
-//            arc(center.x, center.y, radius * 2.0f, radius * 2.0f, startRad, endRad)
-            circle(center.x, center.y, radius * 2.0f)
+            arc(center.x, center.y, radius * 2.0f, radius * 2.0f, startRad, endRad)
+//            circle(center.x, center.y, radius * 2.0f)
             popStyle()
         }
     }
@@ -127,7 +153,8 @@ class S20250709a : ExtendedPApplet(P2D)
         override val startDirection: PVector,
         override val length: Float,
         override val curveType: Int,
-    ) : Curve()
+        initialLength: Float = length,
+    ) : Curve(initialLength)
     {
         override val endPosition: PVector
         override val endDirection: PVector
@@ -160,6 +187,36 @@ class S20250709a : ExtendedPApplet(P2D)
                 endPosition.x, endPosition.y
             )
             popStyle()
+        }
+    }
+
+    private inner class CurveSequence(initialCurve: Curve)
+    {
+        private val curves = MutableList(1) { initialCurve }
+        var isFull: Boolean = false
+
+        fun addCurve(curveSequences: List<CurveSequence>, triableItr: Int = 100)
+        {
+            repeat(triableItr)
+            {
+                val lastCurve = curves.last()
+                val nextCurve = lastCurve.nextCurve() ?: return@repeat
+                if (curveSequences.count { e -> e.curves.any {
+                    linesIntersect(it.startPosition, it.endPosition,
+                        nextCurve.startPosition, nextCurve.endPosition)
+                } } <= sqrt(triableItr.toFloat()))
+                {
+                    curves.add(nextCurve)
+                    return
+                }
+            }
+            curves.toList()
+            isFull = true
+        }
+
+        fun draw()
+        {
+            curves.forEach { it.draw() }
         }
     }
 }
