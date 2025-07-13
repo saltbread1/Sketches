@@ -122,6 +122,18 @@ abstract class ExtendedPApplet(private val renderer: String, protected val isSav
         return 2.0f * radius * asin(sqrt(sq(sin(latitude / 2.0f)) + cos(latitude1) * cos(latitude2) * sq(sin(longitude / 2.0f))))
     }
 
+    protected fun linesIntersect(p1: PVector, p2: PVector, q1: PVector, q2: PVector): Boolean
+    {
+        val v1 = PVector.sub(p2, p1)
+        val v2 = PVector.sub(q1, p1)
+        val v3 = PVector.sub(q2, p1)
+
+        val s = PVector.cross(v1, v2, null).z
+        val t = PVector.cross(v1, v3, null).z
+
+        return s * t < 0.0f
+    }
+
     // -------- GL Utils -------- //
 
     protected fun viewToWorld(v: PVector): PVector

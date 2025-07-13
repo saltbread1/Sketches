@@ -52,7 +52,7 @@ class S20250625b : ExtendedPApplet(P3D)
     private fun init()
     {
         val polygons = ArrayDeque<RegularPolygon>()
-        while (addPolygon(polygons, 200))
+        while (addPolygon(polygons))
         {
             // none
         }
@@ -74,7 +74,7 @@ class S20250625b : ExtendedPApplet(P3D)
         }
     }
 
-    private fun addPolygon(polygons: MutableCollection<RegularPolygon>, triableItr: Int): Boolean
+    private fun addPolygon(polygons: MutableCollection<RegularPolygon>, triableItr: Int = 200): Boolean
     {
         repeat(triableItr)
         {
@@ -174,18 +174,6 @@ class S20250625b : ExtendedPApplet(P3D)
                 val c = PVector.cross(v, pv, null)
                 c.z >= 0.0f
             } == vertices.size
-        }
-
-        private fun linesIntersect(p1: PVector, p2: PVector, q1: PVector, q2: PVector): Boolean
-        {
-            val v1 = PVector.sub(p2, p1)
-            val v2 = PVector.sub(q1, p1)
-            val v3 = PVector.sub(q2, p1)
-
-            val s = PVector.cross(v1, v2, null).z
-            val t = PVector.cross(v1, v3, null).z
-
-            return s * t < 0.0f
         }
 
         fun isOverlapped(other: RegularPolygon): Boolean
