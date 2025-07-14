@@ -2,42 +2,55 @@ package sketches
 
 import processing.core.PVector
 
-class S20250709a : ExtendedPApplet(P2D)
+class S20250709a : ExtendedPApplet(P3D)
 {
-    private val palette = createPalette("f72585-b5179e-7209b7-560bad-480ca8-3a0ca3-3f37c9-4361ee-4895ef-4cc9f0")
-    private val curveSequences = mutableListOf<CurveSequence>()
-    private val maxCurveSequences = 100
+    private val palettes = arrayOf(
+        createPalette("780000-c1121f-fdf0d5-003049-669bbc"),
+        createPalette("001524-15616d-ffecd1-ff7d00-78290f"),
+        createPalette("ff6700-ebebeb-c0c0c0-3a6ea5-004e98"),
+    )
+    private val radialCurves = mutableListOf<RadialCurve>()
+    private val gridRes = 4
+    private val curveDirRad = 1.34f
+    private val near = 0.0f
+    private val far = 10.0f
 
     override fun setup()
     {
+        camera(0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f)
+        ortho(-aspect, aspect, -1.0f, 1.0f, near, far + 1.0f)
         init()
         noLoop()
     }
 
     private fun init()
     {
-        curveSequences.clear()
-        repeat(maxCurveSequences)
+        radialCurves.clear()
+
+        val resX = (gridRes * aspect).toInt()
+        val resY = gridRes
+        val depth = FloatArray(resX * resY) { i -> -sqrt(i.toFloat() / (resX * resY)) * (far - near) }
+        depth.shuffle()
+        repeat(choose(1, 2))
         {
-            curveSequences.add(CurveSequence(CubicBezier(
-                PVector(width * 0.5f, height * 0.5f),
-                PVector(random(-1.0f, 1.0f), random(-1.0f, 1.0f)).normalize(),
-                width * random(0.05f, 0.2f),
-                choose(-1, 0, 1),
-            )))
+            for (iy in 0 until resY)
+            {
+                for (ix in 0 until resX)
+                {
+                    val x = ((ix + random(1.0f)) / resX * 2.0f - 1.0f) * aspect
+                    val y = (iy + random(1.0f)) / resY * 2.0f - 1.0f
+
+                    radialCurves.add(RadialCurve(PVector(x, y, depth[ix + iy * resX])))
+                }
+            }
         }
-        while (curveSequences.any { !it.isFull })
-        {
-            curveSequences.shuffled().filter { !it.isFull }.forEach { it.addCurve(curveSequences) }
-        }
-        curveSequences.shuffle()
     }
 
     override fun draw()
     {
         background(0)
 
-        curveSequences.forEach { it.draw() }
+        radialCurves.forEach { it.draw() }
 
         if (isSave)
         {
@@ -49,13 +62,14 @@ class S20250709a : ExtendedPApplet(P2D)
     {
         super.keyPressed()
         val seed = System.currentTimeMillis()
-        noiseSeed(seed)
         randomSeed(seed)
         init()
         redraw()
     }
 
-    private abstract inner class Curve(private val initialLength: Float)
+    private fun easeStrokeWeight(x: Float) = exp(-x) * sq(cos(PI * x))
+
+    private abstract inner class Curve(protected val initialLength: Float)
     {
         abstract val startPosition: PVector
         abstract val startDirection: PVector
@@ -69,10 +83,13 @@ class S20250709a : ExtendedPApplet(P2D)
             if (abs(curveType) > 1) throw IllegalArgumentException("curveType must be either -1, 1, or 0")
         }
 
-        fun nextCurve(): Curve?
+        fun nextCurve(times: Int, color: Int): Curve?
         {
-            val nextLength = length * (0.8f + random(0.2f))
-            if (nextLength < 1.0f) return null
+            if (length < initialLength * 0.01f) return null
+
+            var nextLength = length
+            repeat(times) { nextLength *= (0.8f + random(0.2f)) }
+
             val nextType = if (nextLength < initialLength * 0.5f)
             {
                 if (curveType == 0) choose(-1, 1) else choose(0, curveType)
@@ -82,24 +99,15 @@ class S20250709a : ExtendedPApplet(P2D)
                 if (curveType == 0) choose(-1, 0, 1) else choose(0, -curveType)
             }
 
-            var nextCurve: Curve? = null
-            repeat(100)
+            val rand = random(1.0f)
+            return when
             {
-                val rand = random(1.0f)
-                nextCurve = when
-                {
-                    rand < 0.5f -> Arc(endPosition, endDirection, nextLength, nextType, initialLength)
-                    else -> CubicBezier(endPosition, endDirection, nextLength, nextType, initialLength)
-                }
-                if (true)
-                {
-                    return@repeat
-                }
+                rand < 0.5f -> Arc(endPosition, endDirection, nextLength, nextType, color, initialLength)
+                else -> CubicBezier(endPosition, endDirection, nextLength, nextType, color, initialLength)
             }
-            return nextCurve
         }
 
-        abstract fun draw()
+        abstract fun draw(alpha: Float)
     }
 
     private inner class Arc(
@@ -107,6 +115,7 @@ class S20250709a : ExtendedPApplet(P2D)
         override val startDirection: PVector,
         override val length: Float,
         override val curveType: Int,
+        private val color: Int,
         initialLength: Float = length,
     ) : Curve(initialLength)
     {
@@ -116,14 +125,13 @@ class S20250709a : ExtendedPApplet(P2D)
         private val center: PVector
         private val startRad: Float
         private val endRad: Float
-        private val color = palette.random()
 
         init
         {
             val sign = if (curveType == 0) choose(-1, 1) else curveType
 
             val ns = startDirection.copy().rotate(-HALF_PI * sign)
-            val startToEnd = ns.copy().rotate(-random(1.2f) * sign).mult(-length)
+            val startToEnd = ns.copy().rotate(-random(1.0f) * curveDirRad * sign).mult(-length)
             endPosition = PVector.add(startPosition, startToEnd)
             radius = startToEnd.magSq() / (2.0f * abs(PVector.dot(startToEnd, ns)))
             center = PVector.mult(ns, -radius).add(startPosition)
@@ -136,12 +144,12 @@ class S20250709a : ExtendedPApplet(P2D)
             endRad = (if (sign > 0) end else start).let { if (it < startRad) it + TWO_PI else it }
         }
 
-        override fun draw()
+        override fun draw(alpha: Float)
         {
             pushStyle()
             noFill()
-            stroke(color)
-            strokeWeight(4.0f)
+            stroke(color, alpha * 255.0f)
+            strokeWeight(easeStrokeWeight(length / initialLength) * 4.0f + 0.5f)
             arc(center.x, center.y, radius * 2.0f, radius * 2.0f, startRad, endRad)
 //            circle(center.x, center.y, radius * 2.0f)
             popStyle()
@@ -153,6 +161,7 @@ class S20250709a : ExtendedPApplet(P2D)
         override val startDirection: PVector,
         override val length: Float,
         override val curveType: Int,
+        private val color: Int,
         initialLength: Float = length,
     ) : Curve(initialLength)
     {
@@ -160,26 +169,25 @@ class S20250709a : ExtendedPApplet(P2D)
         override val endDirection: PVector
         private val controlPosition1: PVector
         private val controlPosition2: PVector
-        private val color = palette.random()
 
         init
         {
             val sign1 = if (curveType == 0) choose(-1, 1) else curveType
             val sign2 = if (curveType == 0) -sign1 else sign1
-            val startToEnd = startDirection.copy().rotate(random(1.34f * sign1)).mult(length)
+            val startToEnd = startDirection.copy().rotate(random(1.0f) * curveDirRad * sign1).mult(length)
             endPosition = PVector.add(startPosition, startToEnd)
-            endDirection = startToEnd.copy().rotate(random(1.34f * sign2)).normalize()
+            endDirection = startToEnd.copy().rotate(random(1.0f) * curveDirRad * sign2).normalize()
             val t = random(0.4f, 0.6f)
             controlPosition1 = PVector.mult(startDirection, length * random(0.3f, t)).add(startPosition)
             controlPosition2 = PVector.mult(endDirection, -length * random(t, 0.7f)).add(endPosition)
         }
 
-        override fun draw()
+        override fun draw(alpha: Float)
         {
             pushStyle()
             noFill()
-            stroke(color)
-            strokeWeight(4.0f)
+            stroke(color, alpha * 255.0f)
+            strokeWeight(easeStrokeWeight(length / initialLength) * 4.0f + 0.5f)
             bezier(
                 startPosition.x, startPosition.y,
                 controlPosition1.x, controlPosition1.y,
@@ -190,21 +198,29 @@ class S20250709a : ExtendedPApplet(P2D)
         }
     }
 
-    private inner class CurveSequence(initialCurve: Curve)
+    private inner class CurveSequence(initialCurve: Curve, private val palette: IntArray)
     {
         private val curves = MutableList(1) { initialCurve }
+        private val pitch = random(TAU)
+        private val yaw = random(TAU)
+        private val roll = random(TAU)
         var isFull: Boolean = false
 
         fun addCurve(curveSequences: List<CurveSequence>, triableItr: Int = 100)
         {
-            repeat(triableItr)
+            for (i in 1..triableItr)
             {
+                val k = sqrt(i.toFloat())
                 val lastCurve = curves.last()
-                val nextCurve = lastCurve.nextCurve() ?: return@repeat
-                if (curveSequences.count { e -> e.curves.any {
-                    linesIntersect(it.startPosition, it.endPosition,
-                        nextCurve.startPosition, nextCurve.endPosition)
-                } } <= sqrt(triableItr.toFloat()))
+                val nextCurve = lastCurve.nextCurve(k.toInt(), palette.random()) ?: break
+                if (curveSequences.count { e ->
+                        e.curves.any {
+                            linesIntersect(
+                                it.startPosition, it.endPosition,
+                                nextCurve.startPosition, nextCurve.endPosition
+                            )
+                        }
+                    } <= k * k)
                 {
                     curves.add(nextCurve)
                     return
@@ -214,9 +230,53 @@ class S20250709a : ExtendedPApplet(P2D)
             isFull = true
         }
 
+        fun draw(alpha: Float)
+        {
+            pushMatrix()
+            rotateZ(pitch)
+            rotateY(yaw)
+            rotateX(roll)
+            curves.forEach { it.draw(alpha) }
+            popMatrix()
+        }
+    }
+
+    private inner class RadialCurve(private val center: PVector)
+    {
+        private val curveSequences = mutableListOf<CurveSequence>()
+        private val maxCurveSequences = 100
+        private val palette = palettes.random()
+
+        init
+        {
+            curveSequences.clear()
+            repeat(maxCurveSequences)
+            {
+                curveSequences.add(
+                    CurveSequence(
+                        CubicBezier(
+                            PVector(),
+                            PVector.random2D(),
+                            random(0.05f, 0.3f),
+                            choose(-1, 0, 1),
+                            palette.random(),
+                        ),
+                        palette,
+                    ),
+                )
+            }
+            while (curveSequences.any { !it.isFull })
+            {
+                curveSequences.shuffled().filter { !it.isFull }.forEach { it.addCurve(curveSequences) }
+            }
+        }
+
         fun draw()
         {
-            curves.forEach { it.draw() }
+            pushMatrix()
+            translate(center.x, center.y, center.z)
+            curveSequences.forEach { it.draw(map(center.z, -far, -near, 0.05f, 0.65f)) }
+            popMatrix()
         }
     }
 }
