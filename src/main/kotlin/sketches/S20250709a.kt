@@ -6,8 +6,8 @@ class S20250709a : ExtendedPApplet(P3D)
 {
     private val palettes = arrayOf(
         createPalette("780000-c1121f-fdf0d5-003049-669bbc"),
-        createPalette("001524-15616d-ffecd1-ff7d00-78290f"),
         createPalette("ff6700-ebebeb-c0c0c0-3a6ea5-004e98"),
+        createPalette("2a4f82-f2e0c2-abc5d9-6d4e39-fbf6e3"),
     )
     private val radialCurves = mutableListOf<RadialCurve>()
     private val gridRes = 4
@@ -18,7 +18,7 @@ class S20250709a : ExtendedPApplet(P3D)
     override fun setup()
     {
         camera(0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f)
-        ortho(-aspect, aspect, -1.0f, 1.0f, near, far + 1.0f)
+        ortho(-aspect, aspect, -1.0f, 1.0f, near, far + 2.0f)
         init()
         noLoop()
     }
@@ -29,26 +29,23 @@ class S20250709a : ExtendedPApplet(P3D)
 
         val resX = (gridRes * aspect).toInt()
         val resY = gridRes
-        val depth = FloatArray(resX * resY) { i -> -sqrt(i.toFloat() / (resX * resY)) * (far - near) }
+        val depth = FloatArray(resX * resY) { i -> i.toFloat() / (resX * resY) }
         depth.shuffle()
-        repeat(choose(1, 2))
+        for (iy in 0 until resY)
         {
-            for (iy in 0 until resY)
+            for (ix in 0 until resX)
             {
-                for (ix in 0 until resX)
-                {
-                    val x = ((ix + random(1.0f)) / resX * 2.0f - 1.0f) * aspect
-                    val y = (iy + random(1.0f)) / resY * 2.0f - 1.0f
+                val x = ((ix + random(1.0f)) / resX * 2.0f - 1.0f) * aspect
+                val y = (iy + random(1.0f)) / resY * 2.0f - 1.0f
 
-                    radialCurves.add(RadialCurve(PVector(x, y, depth[ix + iy * resX])))
-                }
+                radialCurves.add(RadialCurve(PVector(x, y, -depth[ix + iy * resX] * (far - near))))
             }
         }
     }
 
     override fun draw()
     {
-        background(0)
+        background(12.0f, 12.0f, 18.0f)
 
         radialCurves.forEach { it.draw() }
 
@@ -69,14 +66,17 @@ class S20250709a : ExtendedPApplet(P3D)
 
     private fun easeStrokeWeight(x: Float) = exp(-x) * sq(cos(PI * x))
 
-    private abstract inner class Curve(protected val initialLength: Float)
+    private abstract inner class Curve(
+        val length: Float,
+        protected val curveType: Int,
+        protected val color: Int,
+        protected val initialLength: Float
+    )
     {
         abstract val startPosition: PVector
         abstract val startDirection: PVector
         abstract val endPosition: PVector
         abstract val endDirection: PVector
-        abstract val length: Float
-        abstract val curveType: Int
 
         init
         {
@@ -92,7 +92,7 @@ class S20250709a : ExtendedPApplet(P3D)
 
             val nextType = if (nextLength < initialLength * 0.5f)
             {
-                if (curveType == 0) choose(-1, 1) else choose(0, curveType)
+                if (curveType == 0) choose(-1, 1) else choose(curveType)
             }
             else
             {
@@ -107,17 +107,36 @@ class S20250709a : ExtendedPApplet(P3D)
             }
         }
 
-        abstract fun draw(alpha: Float)
+        fun draw(alpha: Float)
+        {
+            pushStyle()
+            noFill()
+            stroke(color, alpha * 255.0f)
+            strokeWeight(easeStrokeWeight(length / initialLength) * 6.0f + 0.5f)
+            drawImpl()
+            popStyle()
+        }
+
+        fun draw2(alpha: Float)
+        {
+            pushStyle()
+            fill(color, alpha * 200.0f)
+            noStroke()
+            drawImpl()
+            popStyle()
+        }
+
+        protected abstract fun drawImpl()
     }
 
     private inner class Arc(
         override val startPosition: PVector,
         override val startDirection: PVector,
-        override val length: Float,
-        override val curveType: Int,
-        private val color: Int,
+        length: Float,
+        curveType: Int,
+        color: Int,
         initialLength: Float = length,
-    ) : Curve(initialLength)
+    ) : Curve(length, curveType, color, initialLength)
     {
         override val endPosition: PVector
         override val endDirection: PVector
@@ -144,26 +163,20 @@ class S20250709a : ExtendedPApplet(P3D)
             endRad = (if (sign > 0) end else start).let { if (it < startRad) it + TWO_PI else it }
         }
 
-        override fun draw(alpha: Float)
+        override fun drawImpl()
         {
-            pushStyle()
-            noFill()
-            stroke(color, alpha * 255.0f)
-            strokeWeight(easeStrokeWeight(length / initialLength) * 4.0f + 0.5f)
-            arc(center.x, center.y, radius * 2.0f, radius * 2.0f, startRad, endRad)
-//            circle(center.x, center.y, radius * 2.0f)
-            popStyle()
+            arc(center.x, center.y, radius * 2.0f, radius * 2.0f, startRad, endRad, OPEN)
         }
     }
 
     private inner class CubicBezier(
         override val startPosition: PVector,
         override val startDirection: PVector,
-        override val length: Float,
-        override val curveType: Int,
-        private val color: Int,
+        length: Float,
+        curveType: Int,
+        color: Int,
         initialLength: Float = length,
-    ) : Curve(initialLength)
+    ) : Curve(length, curveType, color, initialLength)
     {
         override val endPosition: PVector
         override val endDirection: PVector
@@ -182,19 +195,14 @@ class S20250709a : ExtendedPApplet(P3D)
             controlPosition2 = PVector.mult(endDirection, -length * random(t, 0.7f)).add(endPosition)
         }
 
-        override fun draw(alpha: Float)
+        override fun drawImpl()
         {
-            pushStyle()
-            noFill()
-            stroke(color, alpha * 255.0f)
-            strokeWeight(easeStrokeWeight(length / initialLength) * 4.0f + 0.5f)
             bezier(
                 startPosition.x, startPosition.y,
                 controlPosition1.x, controlPosition1.y,
                 controlPosition2.x, controlPosition2.y,
                 endPosition.x, endPosition.y
             )
-            popStyle()
         }
     }
 
@@ -230,6 +238,8 @@ class S20250709a : ExtendedPApplet(P3D)
             isFull = true
         }
 
+        fun calcTotalLength() = curves.map { it.length }.reduce { acc, len -> acc + len }
+
         fun draw(alpha: Float)
         {
             pushMatrix()
@@ -237,6 +247,16 @@ class S20250709a : ExtendedPApplet(P3D)
             rotateY(yaw)
             rotateX(roll)
             curves.forEach { it.draw(alpha) }
+            popMatrix()
+        }
+
+        fun draw2(alpha: Float)
+        {
+            pushMatrix()
+            rotateZ(pitch)
+            rotateY(yaw)
+            rotateX(roll)
+            curves.forEach { it.draw2(alpha) }
             popMatrix()
         }
     }
@@ -273,9 +293,22 @@ class S20250709a : ExtendedPApplet(P3D)
 
         fun draw()
         {
+            val alpha = easeInPolynomial(map(center.z, -far, -near, 0.0f, 0.95f), 3.0f)
+
             pushMatrix()
             translate(center.x, center.y, center.z)
-            curveSequences.forEach { it.draw(map(center.z, -far, -near, 0.05f, 0.65f)) }
+
+            val threshLength = curveSequences.map { it.calcTotalLength() }
+                .sortedByDescending { it }[(curveSequences.size * 0.05f).coerceAtLeast(1.0f).toInt()]
+            val (curves1, curves2) = curveSequences.partition { it.calcTotalLength() >= threshLength }
+
+            pushMatrix()
+            translate(0.0f, 0.0f, -1.0f)
+            curves1.forEach { it.draw2(alpha) }
+            popMatrix()
+
+            curves2.forEach { it.draw(alpha) }
+
             popMatrix()
         }
     }
