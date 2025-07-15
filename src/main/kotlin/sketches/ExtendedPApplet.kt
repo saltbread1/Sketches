@@ -66,6 +66,8 @@ abstract class ExtendedPApplet(private val renderer: String, protected val isSav
         return process.inputStream.bufferedReader().readText()
     }
 
+    protected fun <T> choose(vararg items: T): T = items.random()
+
     // -------- Math Utils -------- //
 
     protected fun clamp(value: Int, min: Int, max: Int): Int = min(max(min, value), max)
@@ -105,6 +107,11 @@ abstract class ExtendedPApplet(private val renderer: String, protected val isSav
         return 1.0f + (c3 * (x - 1.0f) + c1) * sq(x - 1.0f)
     }
 
+    protected fun sigmoid(x: Float, a: Float = 1.0f): Float
+    {
+        return 1.0f / (1.0f + exp(-a * x))
+    }
+
     /**
      * Calculate two points on the sphere.
      */
@@ -113,6 +120,18 @@ abstract class ExtendedPApplet(private val renderer: String, protected val isSav
         val latitude = latitude2 - latitude1
         val longitude = longitude2 - longitude1
         return 2.0f * radius * asin(sqrt(sq(sin(latitude / 2.0f)) + cos(latitude1) * cos(latitude2) * sq(sin(longitude / 2.0f))))
+    }
+
+    protected fun linesIntersect(p1: PVector, p2: PVector, q1: PVector, q2: PVector): Boolean
+    {
+        val v1 = PVector.sub(p2, p1)
+        val v2 = PVector.sub(q1, p1)
+        val v3 = PVector.sub(q2, p1)
+
+        val s = PVector.cross(v1, v2, null).z
+        val t = PVector.cross(v1, v3, null).z
+
+        return s * t < 0.0f
     }
 
     // -------- GL Utils -------- //
