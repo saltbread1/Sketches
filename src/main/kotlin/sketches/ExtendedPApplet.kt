@@ -12,7 +12,7 @@ import kotlin.reflect.KClass
 
 abstract class ExtendedPApplet(private val renderer: String, protected val isSave: Boolean = false) : PApplet()
 {
-    protected var aspect = 0.0f
+    protected val aspect by lazy { width.toFloat() / height.toFloat() }
 
     override fun settings()
     {
@@ -26,8 +26,6 @@ abstract class ExtendedPApplet(private val renderer: String, protected val isSav
             size(1280, 720, renderer)
             pixelDensity(1)
         }
-
-        aspect = width.toFloat() / height.toFloat()
     }
 
     override fun keyPressed()

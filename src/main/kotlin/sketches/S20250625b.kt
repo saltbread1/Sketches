@@ -13,18 +13,18 @@ class S20250625b : ExtendedPApplet(P3D)
     private val far = 4.0f
     private val fogColor = 0xff121216.toInt()
     private val heightFogColor = 0x00f2f2f8.toInt()
-    private var shader: PShader? = null
+    private val shader by lazy { loadShader(
+        this::class.java.classLoader.getResource("shaders/fog.frag")?.path,
+        this::class.java.classLoader.getResource("shaders/fog.vert")?.path,
+        ) }
 
     override fun setup()
     {
         perspective(fov, aspect, 0.1f, far)
         camera(eye.x, eye.y, eye.z, center.x, center.y, center.z, 0.0f, 1.0f, 0.0f)
 
-        shader = loadShader(
-            this::class.java.classLoader.getResource("shaders/fog.frag")?.path,
-            this::class.java.classLoader.getResource("shaders/fog.vert")?.path)
-        shader?.set("fogColor", red(fogColor) / 255.0f, green(fogColor) / 255.0f, blue(fogColor) / 255.0f)
-        shader?.set("fogRange", far * 0.2f, far)
+        shader.set("fogColor", red(fogColor) / 255.0f, green(fogColor) / 255.0f, blue(fogColor) / 255.0f)
+        shader.set("fogRange", far * 0.2f, far)
 
         init()
         noLoop()

@@ -1,8 +1,8 @@
 package sketches
 import mesh.*
+import mesh.data.Icosahedron
 import processing.core.PVector
 import processing.opengl.PGraphicsOpenGL
-import processing.opengl.PShader
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedDeque
 
@@ -22,7 +22,10 @@ class S20250630a : ExtendedPApplet(P3D)
         RandomWalk(palette1, 0.6f, 3, 3, 36),
         RandomWalk(palette2, 0.0f, 4, 8, 111),
     )
-    private var bgShader: PShader? = null
+    private val bgShader by lazy { loadShader(
+        this::class.java.classLoader.getResource("shaders/gradation.frag")?.path,
+        this::class.java.classLoader.getResource("shaders/gradation.vert")?.path,
+        ) }
     private val totalSaveSec = 20.0f
 
     override fun settings()
@@ -30,8 +33,6 @@ class S20250630a : ExtendedPApplet(P3D)
         // full HD framebuffer
         size(960, 540, P3D)
         pixelDensity(2)
-
-        aspect = width.toFloat() / height.toFloat()
     }
 
     override fun setup()
@@ -40,14 +41,10 @@ class S20250630a : ExtendedPApplet(P3D)
         camera(eye.x, eye.y, eye.z, center.x, center.y, center.z, 0.0f, 1.0f, 0.0f)
         randomWalks.forEach { it.init() }
 
-        bgShader = loadShader(
-            this::class.java.classLoader.getResource("shaders/gradation.frag")?.path,
-            this::class.java.classLoader.getResource("shaders/gradation.vert")?.path,
-        )
-//        bgShader?.set("startColor", 0.24f, 0.23f, 0.56f)
-//        bgShader?.set("endColor", 0.64f, 0.023f, 0.12f)
-        bgShader?.set("startColor", sq(0.24f), sq(0.23f), sq(0.56f))
-        bgShader?.set("endColor", sq(0.64f), sq(0.023f), sq(0.12f))
+//        bgShader.set("startColor", 0.24f, 0.23f, 0.56f)
+//        bgShader.set("endColor", 0.64f, 0.023f, 0.12f)
+        bgShader.set("startColor", sq(0.24f), sq(0.23f), sq(0.56f))
+        bgShader.set("endColor", sq(0.64f), sq(0.023f), sq(0.12f))
 
         frameRate(fps)
     }
@@ -57,7 +54,7 @@ class S20250630a : ExtendedPApplet(P3D)
         background(30.0f, 30.0f, 36.0f)
 
         val rad = frameCount * 0.004f
-        bgShader?.set("direction", cos(rad), sin(rad))
+        bgShader.set("direction", cos(rad), sin(rad))
 
         hint(DISABLE_DEPTH_MASK)
 
