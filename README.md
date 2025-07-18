@@ -23,4 +23,4 @@ For example:
 
 ## License
 
-[MIT License](https://github.com/saltbread1/Sketches/blob/main/LICENSE)
+This project is licensed under [CC BY-NC-ND 4.0](https://github.com/saltbread1/Sketches/blob/main/LICENSE).
