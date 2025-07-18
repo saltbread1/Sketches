@@ -38,6 +38,11 @@ class S20250718a : ExtendedPApplet(P3D)
             }
             popMatrix()
         }
+
+        if (isSave)
+        {
+            saveFrame(saveName(this::class))
+        }
     }
 
     private fun grid(resX: Int, resY: Int, minDepth: Int, maxDepth: Int, action: () -> Unit)
