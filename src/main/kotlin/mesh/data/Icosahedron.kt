@@ -1,4 +1,4 @@
-package mesh
+package mesh.data
 
 import processing.core.PApplet.*
 import processing.core.PConstants.TWO_PI

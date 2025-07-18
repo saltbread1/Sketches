@@ -1,5 +1,6 @@
 package mesh
 
+import mesh.data.MeshData
 import processing.core.PVector
 import kotlin.test.*
 

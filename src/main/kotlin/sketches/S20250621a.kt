@@ -6,18 +6,17 @@ class S20250621a : ExtendedPApplet(P2D)
 {
     private val far = 100.0f
     private val palette = createPalette("ae8b70-fa81cd-664864-efefef-9c3f26-c4c7bf-87a0ad-89d6c3-384a4d-77b764")
-    private var pg: PGraphics? = null
+    private val pg by lazy { createGraphics(width, height, P3D) }
 
     override fun setup()
     {
         val fov: Float = HALF_PI
-
-        pg = createGraphics(width, height, P3D)
-        pg!!.beginDraw()
-        pg!!.hint(DISABLE_DEPTH_TEST)
-        pg!!.ortho(-aspect, aspect, -1.0f, 1.0f, 0.1f, far)
-        pg!!.camera(0.0f, 0.0f, 1.0f / tan(fov / 2.0f), 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f)
-        pg!!.endDraw()
+        
+        pg.beginDraw()
+        pg.hint(DISABLE_DEPTH_TEST)
+        pg.ortho(-aspect, aspect, -1.0f, 1.0f, 0.1f, far)
+        pg.camera(0.0f, 0.0f, 1.0f / tan(fov / 2.0f), 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f)
+        pg.endDraw()
 
         noLoop()
     }
@@ -37,22 +36,22 @@ class S20250621a : ExtendedPApplet(P2D)
         }
 
         // render
-        pg!!.beginDraw()
-        pg!!.background(0, 0.0f)
+        pg.beginDraw()
+        pg.background(0, 0.0f)
         rectList.forEach { rect ->
             val cx = rect.x + rect.w / 2.0f
             val cy = rect.y + rect.h / 2.0f
-            pg!!.push()
-            trans(cx, cy, pg!!)
-            pg!!.scale(rect.w, rect.h, rect.h)
-            pg!!.fill(getColor(0.44f))
-//            pg!!.strokeWeight(1.0f / min(rect.w, rect.h))
-//            pg!!.stroke(0xff000000.toInt(), sigmoid(rect.w * rect.h - 0.5f) * 60.0f)
-            pg!!.noStroke()
-            pg!!.box(1.0f)
-            pg!!.pop()
+            pg.push()
+            trans(cx, cy, pg)
+            pg.scale(rect.w, rect.h, rect.h)
+            pg.fill(getColor(0.44f))
+//            pg.strokeWeight(1.0f / min(rect.w, rect.h))
+//            pg.stroke(0xff000000.toInt(), sigmoid(rect.w * rect.h - 0.5f) * 60.0f)
+            pg.noStroke()
+            pg.box(1.0f)
+            pg.pop()
         }
-        pg!!.endDraw()
+        pg.endDraw()
 
         background(0xff000000.toInt())
         push()

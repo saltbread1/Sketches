@@ -1,10 +1,20 @@
 package mesh
 
+import mesh.data.MeshData
 import processing.core.PVector
 import kotlin.math.max
 import kotlin.math.min
 
-class HalfEdgeMesh()
+/**
+ * Represents a half-edge mesh structure, offering efficient traversal and manipulation
+ * of vertices, edges, and faces in a mesh.
+ * This implementation allows **only triangle meshes**.
+ *
+ * @property vertices  A list of all vertices in the mesh.
+ * @property faces     A list of all faces in the mesh.
+ * @property halfEdges A list of all half-edges in the mesh.
+ */
+class HalfEdgeMesh
 {
     private val vertices = mutableListOf<Vertex>()
     private val faces = mutableListOf<Face>()
