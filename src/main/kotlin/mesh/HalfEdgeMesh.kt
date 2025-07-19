@@ -294,10 +294,7 @@ class HalfEdgeMesh
     }
 
     /**
-     * Insert a new vertex to the specified edge.
-     * Three edges and two faces will be created and added to the mesh.
-     *
-     * Ex. A-->B is the specified edge and each-edge constructs CCW faces:
+     * Faces are CCW.
      *
      * Before split:
      * ```
@@ -325,18 +322,18 @@ class HalfEdgeMesh
      *     D
      * ```
      */
-    fun splitEdge(edge: HalfEdge, position: PVector): Boolean
+    private fun splitEdgeInterior(edge: HalfEdge /* A -> B */, position: PVector): Boolean
     {
-        val edgeIn = if (edge.face == -1) edge.opposite ?: return false else edge
-
-        val edgeOpp = edgeIn.opposite ?: return false// B -> A
-        val edgeNext = edgeIn.next ?: return false // B -> C
-        val edgePrev = edgeIn.prev ?: return false // C -> A
+        val edgeOpp = edge.opposite ?: return false // B -> A
+        val edgeNext = edge.next ?: return false // B -> C
+        val edgePrev = edge.prev ?: return false // C -> A
         val edgeOppNext = edgeOpp.next ?: return false // A -> D
         val edgeOppPrev = edgeOpp.prev ?: return false // D -> B
 
+        if (edge.face == -1 || edgeOpp.face == -1) return false // boundary edge
+
         val va = edgeOpp.vertex
-        val vb = edgeIn.vertex
+        val vb = edge.vertex
         val vc = edgeNext.vertex
         val vd = edgeOppNext.vertex
 
@@ -352,39 +349,34 @@ class HalfEdgeMesh
         val newEdge2 = HalfEdge(vn, -1, null, null, null) // DN
         val newEdgeOpp2 = HalfEdge(vd, -1, null, null, null) // ND
 
-        edgeIn.vertex = vn
+        edge.vertex = vn
         edgeOpp.vertex = vn
 
         // set outgoing
         vertices[vn].outgoing = newEdge0
 
-        // add new faces and set to new edges
-        val newFace0 = if (edgeIn.face >= 0)
-        {
-            faces[edgeIn.face].halfEdge = edgeIn
-            faces.add(Face(newEdge0))
-            faces.lastIndex
-        }
-        else -1
-        val newFace1 = if (edgeOpp.face >= 0)
-        {
-            faces[edgeOpp.face].halfEdge = edgeOpp
-            faces.add(Face(newEdgeOpp0))
-            faces.lastIndex
-        }
-        else -1
+        // add new faces
+        faces[edge.face].halfEdge = edge
+        faces.add(Face(newEdge0))
+        val newFace0 = faces.lastIndex
+
+        faces[edgeOpp.face].halfEdge = edgeOpp
+        faces.add(Face(newEdgeOpp0))
+        val newFace1 = faces.lastIndex
+
+        // update faces
         edgeNext.face = newFace0
-        edgeOppNext.face = newFace1
         newEdge0.face = newFace0
-        newEdgeOpp0.face = newFace1
         newEdge1.face = newFace0
-        newEdgeOpp1.face = edgeIn.face
+        edgeOppNext.face = newFace1
+        newEdgeOpp0.face = newFace1
         newEdge2.face = newFace1
+        newEdgeOpp1.face = edge.face
         newEdgeOpp2.face = edgeOpp.face
 
         // set connections of edges
-        edgeIn.next = newEdgeOpp1
-        edgeIn.opposite = newEdgeOpp0
+        edge.next = newEdgeOpp1
+        edge.opposite = newEdgeOpp0
         edgeOpp.next = newEdgeOpp2
         edgeOpp.opposite = newEdge0
         edgeNext.next = newEdge1
@@ -399,13 +391,13 @@ class HalfEdgeMesh
         newEdge0.opposite = edgeOpp
         newEdgeOpp0.next = edgeOppNext
         newEdgeOpp0.prev = newEdge2
-        newEdgeOpp0.opposite = edgeIn
+        newEdgeOpp0.opposite = edge
 
         newEdge1.next = newEdge0
         newEdge1.prev = edgeNext
         newEdge1.opposite = newEdgeOpp1
         newEdgeOpp1.next = edgePrev
-        newEdgeOpp1.prev = edgeIn
+        newEdgeOpp1.prev = edge
         newEdgeOpp1.opposite = newEdge1
 
         newEdge2.next = newEdgeOpp0
@@ -430,7 +422,127 @@ class HalfEdgeMesh
     }
 
     /**
+     * Faces are CCW.
+     *
+     * Before split:
+     * ```
+     *     C
+     *    / \
+     *   /   \
+     *  /     \
+     * A-------B
+     *```
+     *
+     * After split:
+     * ```
+     *     C
+     *    /|\
+     *   / | \
+     *  /  |  \
+     * A---N---B
+     * ```
+     */
+    private fun splitEdgeBoundary(edge: HalfEdge /* A -> B (not boundary) */, position: PVector): Boolean
+    {
+        val edgeOpp = edge.opposite ?: return false // B -> A: boundary
+        val edgeNext = edge.next ?: return false // B -> C: interior
+        val edgePrev = edge.prev ?: return false // C -> A: interior
+        val edgeOppNext = edgeOpp.next ?: return false // A -> C
+
+        if (edge.face == -1 || edgeOpp.face != -1) return false // allow only edge is interior and edgeOpp is boundary
+
+        val va = edgeOpp.vertex
+        val vb = edge.vertex
+        val vc = edgeNext.vertex
+
+        // add a new vertex
+        vertices.add(Vertex(position.copy(), null))
+        val vn = vertices.lastIndex
+
+        // create new edges (set only vertices)
+        val newEdge0 = HalfEdge(vb, -1, null, null, null) // NB
+        val newEdgeOpp0 = HalfEdge(va, -1, null, null, null) // NA
+        val newEdge1 = HalfEdge(vn, -1, null, null, null) // CN
+        val newEdgeOpp1 = HalfEdge(vc, -1, null, null, null) // NC
+
+        edge.vertex = vn
+        edgeOpp.vertex = vn
+
+        // set outgoing
+        vertices[vn].outgoing = newEdge0
+
+        // add new faces
+        faces[edge.face].halfEdge = edge
+        faces.add(Face(newEdge0))
+        val newFace0 = faces.lastIndex
+
+        // update faces
+        edgeNext.face = newFace0
+        newEdge0.face = newFace0
+        newEdge1.face = newFace0
+        newEdgeOpp1.face = edge.face
+
+        // set connections of edges
+        edge.next = newEdgeOpp1
+        edge.opposite = newEdgeOpp0
+        edgeOpp.next = newEdgeOpp0
+        edgeOpp.opposite = newEdge0
+        edgeNext.next = newEdge1
+        edgeNext.prev = newEdge0
+        edgePrev.prev = newEdgeOpp1
+        edgeOppNext.prev = newEdgeOpp0
+
+        newEdge0.next = edgeNext
+        newEdge0.prev = newEdge1
+        newEdge0.opposite = edgeOpp
+        newEdgeOpp0.next = edgeOppNext
+        newEdgeOpp0.prev = edgeOpp
+        newEdgeOpp0.opposite = edge
+
+        newEdge1.next = newEdge0
+        newEdge1.prev = edgeNext
+        newEdge1.opposite = newEdgeOpp1
+        newEdgeOpp1.next = edgePrev
+        newEdgeOpp1.prev = edge
+        newEdgeOpp1.opposite = newEdge1
+
+        // add edges
+        halfEdges.add(newEdge0)
+        halfEdges.add(newEdgeOpp0)
+        halfEdges.add(newEdge1)
+        halfEdges.add(newEdgeOpp1)
+
+        // calculate normals
+        calculateNormals()
+
+        return true
+    }
+
+    /**
+     * Insert a new vertex to the specified edge.
+     * Three edges and two faces will be created and added to the mesh.
+     *
+     * @see splitEdgeInterior
+     * @see splitEdgeBoundary
+     */
+    fun splitEdge(edge: HalfEdge, position: PVector): Boolean
+    {
+        val opp = edge.opposite ?: return false
+
+        return when
+        {
+            edge.face != -1 && opp.face != -1 -> splitEdgeInterior(edge, position)
+            edge.face != -1 && opp.face == -1 -> splitEdgeBoundary(edge, position)
+            edge.face == -1 && opp.face != -1 -> splitEdgeBoundary(opp, position)
+            else -> false
+        }
+    }
+
+    /**
      * Split the edge specified by its vertices.
+     *
+     * @see splitEdgeInterior
+     * @see splitEdgeBoundary
      */
     fun splitEdge(sourceVertex: Int, targetVertex: Int, position: PVector): Boolean
     {
