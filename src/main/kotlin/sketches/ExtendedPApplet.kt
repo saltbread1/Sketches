@@ -64,6 +64,8 @@ abstract class ExtendedPApplet(private val renderer: String, protected val isSav
         return process.inputStream.bufferedReader().readText()
     }
 
+    protected fun resourcePath(filename: String): String? = this::class.java.classLoader.getResource(filename)?.path
+
     protected fun <T> choose(vararg items: T): T = items.random()
 
     // -------- Math Utils -------- //

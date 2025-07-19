@@ -23,8 +23,8 @@ class S20250630a : ExtendedPApplet(P3D)
         RandomWalk(palette2, 0.0f, 4, 8, 111),
     )
     private val bgShader by lazy { loadShader(
-        this::class.java.classLoader.getResource("shaders/gradation.frag")?.path,
-        this::class.java.classLoader.getResource("shaders/gradation.vert")?.path,
+        resourcePath("shaders/gradation.frag")!!,
+        resourcePath("shaders/gradation.vert")!!,
         ) }
     private val totalSaveSec = 20.0f
 
