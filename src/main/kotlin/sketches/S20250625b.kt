@@ -1,7 +1,6 @@
 package sketches
 
 import processing.core.PVector
-import processing.opengl.PShader
 
 class S20250625b : ExtendedPApplet(P3D)
 {
@@ -14,8 +13,8 @@ class S20250625b : ExtendedPApplet(P3D)
     private val fogColor = 0xff121216.toInt()
     private val heightFogColor = 0x00f2f2f8.toInt()
     private val shader by lazy { loadShader(
-        this::class.java.classLoader.getResource("shaders/fog.frag")?.path,
-        this::class.java.classLoader.getResource("shaders/fog.vert")?.path,
+        resourcePath("shaders/fog.frag")!!,
+        resourcePath("shaders/fog.vert")!!,
         ) }
 
     override fun setup()
