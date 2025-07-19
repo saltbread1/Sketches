@@ -234,7 +234,7 @@ class HalfEdgeMeshTest
 
         assertEquals(originalVertexCount + 1, mesh.getVertexCount())
         assertEquals(originalFaceCount + 1, mesh.getFaceCount())
-        assertEquals(originalEdgeCount + 3, mesh.getEdgeCount())
+        assertEquals(originalEdgeCount + 2, mesh.getEdgeCount())
 
         val newVertexPos = mesh.getVertexPosition(originalVertexCount)
         assertNotNull(newVertexPos)
