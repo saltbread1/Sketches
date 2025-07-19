@@ -327,14 +327,16 @@ class HalfEdgeMesh
      */
     fun splitEdge(edge: HalfEdge, position: PVector): Boolean
     {
-        val edgeOpp = edge.opposite ?: return false// B -> A
-        val edgeNext = edge.next ?: return false // B -> C
-        val edgePrev = edge.prev ?: return false // C -> A
+        val edgeIn = if (edge.face == -1) edge.opposite ?: return false else edge
+
+        val edgeOpp = edgeIn.opposite ?: return false// B -> A
+        val edgeNext = edgeIn.next ?: return false // B -> C
+        val edgePrev = edgeIn.prev ?: return false // C -> A
         val edgeOppNext = edgeOpp.next ?: return false // A -> D
         val edgeOppPrev = edgeOpp.prev ?: return false // D -> B
 
         val va = edgeOpp.vertex
-        val vb = edge.vertex
+        val vb = edgeIn.vertex
         val vc = edgeNext.vertex
         val vd = edgeOppNext.vertex
 
@@ -350,34 +352,39 @@ class HalfEdgeMesh
         val newEdge2 = HalfEdge(vn, -1, null, null, null) // DN
         val newEdgeOpp2 = HalfEdge(vd, -1, null, null, null) // ND
 
-        edge.vertex = vn
+        edgeIn.vertex = vn
+        edgeOpp.vertex = vn
 
         // set outgoing
         vertices[vn].outgoing = newEdge0
 
         // add new faces and set to new edges
-        val newFace0 = if (edge.face >= 0)
+        val newFace0 = if (edgeIn.face >= 0)
         {
-            faces.add(Face(newEdge1))
+            faces[edgeIn.face].halfEdge = edgeIn
+            faces.add(Face(newEdge0))
             faces.lastIndex
         }
         else -1
         val newFace1 = if (edgeOpp.face >= 0)
         {
-            faces.add(Face(newEdge2))
+            faces[edgeOpp.face].halfEdge = edgeOpp
+            faces.add(Face(newEdgeOpp0))
             faces.lastIndex
         }
         else -1
+        edgeNext.face = newFace0
+        edgeOppNext.face = newFace1
         newEdge0.face = newFace0
         newEdgeOpp0.face = newFace1
         newEdge1.face = newFace0
-        newEdgeOpp1.face = edge.face
+        newEdgeOpp1.face = edgeIn.face
         newEdge2.face = newFace1
         newEdgeOpp2.face = edgeOpp.face
 
         // set connections of edges
-        edge.next = newEdgeOpp1
-        edge.opposite = newEdgeOpp0
+        edgeIn.next = newEdgeOpp1
+        edgeIn.opposite = newEdgeOpp0
         edgeOpp.next = newEdgeOpp2
         edgeOpp.opposite = newEdge0
         edgeNext.next = newEdge1
@@ -388,17 +395,17 @@ class HalfEdgeMesh
         edgeOppPrev.prev = newEdgeOpp2
 
         newEdge0.next = edgeNext
-        newEdge0.prev = edge
+        newEdge0.prev = newEdge1
         newEdge0.opposite = edgeOpp
         newEdgeOpp0.next = edgeOppNext
-        newEdgeOpp0.prev = edgeOpp
-        newEdgeOpp0.opposite = edge
+        newEdgeOpp0.prev = newEdge2
+        newEdgeOpp0.opposite = edgeIn
 
         newEdge1.next = newEdge0
         newEdge1.prev = edgeNext
         newEdge1.opposite = newEdgeOpp1
         newEdgeOpp1.next = edgePrev
-        newEdgeOpp1.prev = edge
+        newEdgeOpp1.prev = edgeIn
         newEdgeOpp1.opposite = newEdge1
 
         newEdge2.next = newEdgeOpp0
@@ -459,7 +466,8 @@ class HalfEdgeMesh
                     val v1 = this@HalfEdgeMesh.vertices[targetVertex].position
                     val mid = midPointStrategy.invoke(v0, v1)
                     vertices.add(mid)
-                    edgeMidpoints[Pair(min(sourceVertex, targetVertex), max(sourceVertex, targetVertex))] = vertices.lastIndex
+                    edgeMidpoints[Pair(min(sourceVertex, targetVertex), max(sourceVertex, targetVertex))] =
+                        vertices.lastIndex
                 }
 
                 this@HalfEdgeMesh.faces.forEach { face ->
@@ -506,13 +514,33 @@ class HalfEdgeMesh
             {
                 errorMessages.append("HalfEdge $index: null opposite\n")
             }
+
+            if (edge.next?.prev != edge || edge.prev?.next != edge || edge.opposite?.opposite != edge)
+            {
+                errorMessages.append("HalfEdge $index: connection inconsistency\n")
+            }
+
+            if (edge.face != -1 && (edge.next?.next?.next != edge || edge.prev?.prev?.prev != edge))
+            {
+                errorMessages.append("HalfEdge $index: interior loop inconsistency\n")
+            }
+
+            if (edge.face != edge.next?.face || edge.face != edge.prev?.face)
+            {
+                errorMessages.append("HalfEdge $index: edge face inconsistency\n")
+            }
         }
 
         // check boundary loop
-        val boundaryEdges = halfEdges.filter { it.face == -1 }
-        if (boundaryEdges.any { it.next == null || it.prev == null })
+        val numBoundaryEdges = halfEdges.count { it.face == -1 }
+        val first = halfEdges.find { it.face == -1 }
+        var boundary0 = first
+        repeat(numBoundaryEdges) { boundary0 = boundary0?.next }
+        var boundary1 = first
+        repeat(numBoundaryEdges) { boundary1 = boundary1?.prev }
+        if (boundary0 != first || boundary1 != first)
         {
-            errorMessages.append("Boundary edges not properly connected\n")
+            errorMessages.append("Boundary loop inconsistency\n")
         }
 
         return errorMessages
@@ -537,7 +565,8 @@ class HalfEdgeMesh
             faceNormals.add(cross.div(crossMag))
         }
         vertexNormals.addAll(vertices.mapIndexed { idx, _ ->
-            getAdjacentFaces(idx).map { PVector.mult(faceNormals[it], faceAreas[it]) }.reduce { acc, n -> PVector.add(acc, n) }.normalize()
+            getAdjacentFaces(idx).map { PVector.mult(faceNormals[it], faceAreas[it]) }
+                .reduce { acc, n -> PVector.add(acc, n) }.normalize()
         })
     }
 }
