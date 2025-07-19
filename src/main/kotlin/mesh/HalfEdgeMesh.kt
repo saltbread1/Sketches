@@ -20,6 +20,9 @@ class HalfEdgeMesh
     private val faces = mutableListOf<Face>()
     private val halfEdges = mutableListOf<HalfEdge>()
 
+    val faceNormals = mutableListOf<PVector>()
+    val vertexNormals = mutableListOf<PVector>()
+
     fun buildMesh(meshData: MeshData)
     {
         vertices.clear()
@@ -47,7 +50,7 @@ class HalfEdgeMesh
             e1.prev = e0
             e2.prev = e1
 
-            // associate to the face
+            // associate with the face
             faces.add(Face(e0))
 
             // add to the edge list
@@ -93,6 +96,9 @@ class HalfEdgeMesh
             e.next = boundaryEdges.asSequence().find { it != e && it.opposite?.vertex == e.vertex }
             e.prev = boundaryEdges.asSequence().find { it != e && it.vertex == e.opposite?.vertex }
         }
+
+        // calculate normals
+        calculateNormals()
     }
 
     fun getVertexCount() = vertices.size
@@ -168,7 +174,7 @@ class HalfEdgeMesh
     }
 
     /**
-     * Get adjacent faces of the specified vertex.
+     * Get the adjacent faces of the specified vertex.
      */
     fun getAdjacentFaces(vertex: Int): List<Int>
     {
@@ -189,7 +195,7 @@ class HalfEdgeMesh
     }
 
     /**
-     * Get neighbor faces of the specified face.
+     * Get the neighbor faces of the specified face.
      */
     fun getFaceNeighbors(face: Int): List<Int>
     {
@@ -248,7 +254,7 @@ class HalfEdgeMesh
             val sourceVertex = opposite.vertex
             val targetVertex = halfEdge.vertex
 
-            // get a normalized edge key
+            // get a normalized-edge key
             val edgeKey = Pair(min(sourceVertex, targetVertex), max(sourceVertex, targetVertex))
 
             // already have not processed
@@ -291,7 +297,7 @@ class HalfEdgeMesh
      * Insert a new vertex to the specified edge.
      * Three edges and two faces will be created and added to the mesh.
      *
-     * Ex. A-->B is the specified edge and each edge constructs CCW faces:
+     * Ex. A-->B is the specified edge and each-edge constructs CCW faces:
      *
      * Before split:
      * ```
@@ -410,6 +416,9 @@ class HalfEdgeMesh
         halfEdges.add(newEdge2)
         halfEdges.add(newEdgeOpp2)
 
+        // calculate normals
+        calculateNormals()
+
         return true
     }
 
@@ -507,5 +516,28 @@ class HalfEdgeMesh
         }
 
         return errorMessages
+    }
+
+    private fun calculateNormals()
+    {
+        val faceAreas = mutableListOf<Float>()
+        faceNormals.clear()
+        vertexNormals.clear()
+
+        faces.indices.forEach { idx ->
+            val vertices = getFaceVertices(idx)
+            val p0 = getVertexPosition(vertices[0])
+            val p1 = getVertexPosition(vertices[1])
+            val p2 = getVertexPosition(vertices[2])
+            val v0 = PVector.sub(p1, p0)
+            val v1 = PVector.sub(p2, p0)
+            val cross = PVector.cross(v0, v1, null)
+            val crossMag = cross.mag()
+            faceAreas.add(crossMag * 0.5f)
+            faceNormals.add(cross.div(crossMag))
+        }
+        vertexNormals.addAll(vertices.mapIndexed { idx, _ ->
+            getAdjacentFaces(idx).map { PVector.mult(faceNormals[it], faceAreas[it]) }.reduce { acc, n -> PVector.add(acc, n) }.normalize()
+        })
     }
 }
