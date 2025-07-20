@@ -20,8 +20,8 @@ class HalfEdgeMesh
     private val faces = mutableListOf<Face>()
     private val halfEdges = mutableListOf<HalfEdge>()
 
-    val faceNormals = mutableListOf<PVector>()
-    val vertexNormals = mutableListOf<PVector>()
+    private val faceNormals = mutableListOf<PVector>()
+    private val vertexNormals = mutableListOf<PVector>()
 
     fun buildMesh(meshData: MeshData)
     {
@@ -33,7 +33,7 @@ class HalfEdgeMesh
         val edgeToHalfEdge: MutableMap<Pair<Int, Int>, HalfEdge> = mutableMapOf()
 
         // initial vertices
-        vertices.addAll(meshData.vertices.asSequence().map { Vertex(it.copy(), null) })
+        vertices.addAll(meshData.vertices.map { Vertex(it.copy(), null) })
 
         // create half-edges
         meshData.faces.forEachIndexed { face, (v0, v1, v2) ->
@@ -59,9 +59,9 @@ class HalfEdgeMesh
             halfEdges.add(e2)
 
             // add to the edge map
-            edgeToHalfEdge[Pair(v0, v1)] = e0
-            edgeToHalfEdge[Pair(v1, v2)] = e1
-            edgeToHalfEdge[Pair(v2, v0)] = e2
+            edgeToHalfEdge[v0 to v1] = e0
+            edgeToHalfEdge[v1 to v2] = e1
+            edgeToHalfEdge[v2 to v0] = e2
 
             // set outgoing edges to vertices
             if (vertices[v0].outgoing == null) vertices[v0].outgoing = e0
@@ -70,9 +70,9 @@ class HalfEdgeMesh
         }
 
         // set opposite half-edges
-        val edgeList = edgeToHalfEdge.toList()
+        val edgeList = edgeToHalfEdge
         edgeList.forEach { (key, edge) ->
-            val reverseKey = Pair(key.second, key.first)
+            val reverseKey = key.second to key.first
             edge.opposite = edgeToHalfEdge[reverseKey]
 
             if (edge.opposite == null)
@@ -91,10 +91,10 @@ class HalfEdgeMesh
         }
 
         // configure boundary edges
-        val boundaryEdges = halfEdges.filter { it.face == -1 }.toList()
+        val boundaryEdges = halfEdges.filter { it.face == -1 }
         boundaryEdges.forEach { e ->
-            e.next = boundaryEdges.asSequence().find { it != e && it.opposite?.vertex == e.vertex }
-            e.prev = boundaryEdges.asSequence().find { it != e && it.vertex == e.opposite?.vertex }
+            e.next = boundaryEdges.find { it != e && it.opposite?.vertex == e.vertex }
+            e.prev = boundaryEdges.find { it != e && it.vertex == e.opposite?.vertex }
         }
 
         // calculate normals
@@ -120,10 +120,11 @@ class HalfEdgeMesh
      */
     fun getEdgeCount() = halfEdges.size / 2
 
-    fun getVertexPosition(vertex: Int): PVector?
-    {
-        return vertices.getOrNull(vertex)?.position?.copy()
-    }
+    fun getVertexPosition(vertex: Int): PVector? = vertices.getOrNull(vertex)?.position?.copy()
+
+    fun getFaceNormal(face: Int): PVector? = faceNormals.getOrNull(face)?.copy()
+
+    fun getVertexNormal(vertex: Int): PVector? = vertexNormals.getOrNull(vertex)?.copy()
 
     fun setVertexPosition(vertex: Int, position: PVector): Boolean
     {
@@ -170,7 +171,7 @@ class HalfEdgeMesh
         }
         while (current != null && current != start)
 
-        return result.toList()
+        return result
     }
 
     /**
@@ -191,7 +192,7 @@ class HalfEdgeMesh
         }
         while (current != null && current != start)
 
-        return result.toList()
+        return result
     }
 
     /**
@@ -214,7 +215,7 @@ class HalfEdgeMesh
         }
         while (current != null && current != start)
 
-        return result.toList()
+        return result
     }
 
     /**
@@ -235,7 +236,7 @@ class HalfEdgeMesh
         }
         while (current != null && current != start)
 
-        return result.toList()
+        return result
     }
 
     fun getSpecifiedHalfEdge(sourceVertex: Int, targetVertex: Int): HalfEdge?
@@ -255,7 +256,7 @@ class HalfEdgeMesh
             val targetVertex = halfEdge.vertex
 
             // get a normalized-edge key
-            val edgeKey = Pair(min(sourceVertex, targetVertex), max(sourceVertex, targetVertex))
+            val edgeKey = min(sourceVertex, targetVertex) to max(sourceVertex, targetVertex)
 
             // already have not processed
             if (edgeKey !in processedEdges)
@@ -268,7 +269,7 @@ class HalfEdgeMesh
             }
         }
 
-        return uniqueEdges.toList()
+        return uniqueEdges
     }
 
     fun forEachVertex(action: (vertex: Int, position: PVector) -> Unit)
@@ -578,7 +579,7 @@ class HalfEdgeMesh
                     val v1 = this@HalfEdgeMesh.vertices[targetVertex].position
                     val mid = midPointStrategy.invoke(v0, v1)
                     vertices.add(mid)
-                    edgeMidpoints[Pair(min(sourceVertex, targetVertex), max(sourceVertex, targetVertex))] =
+                    edgeMidpoints[min(sourceVertex, targetVertex) to max(sourceVertex, targetVertex)] =
                         vertices.lastIndex
                 }
 
@@ -590,9 +591,9 @@ class HalfEdgeMesh
                     val v0 = edge.vertex
                     val v1 = next.vertex
                     val v2 = prev.vertex
-                    val m01 = edgeMidpoints[Pair(min(v0, v1), max(v0, v1))] ?: return@forEach
-                    val m12 = edgeMidpoints[Pair(min(v1, v2), max(v1, v2))] ?: return@forEach
-                    val m20 = edgeMidpoints[Pair(min(v2, v0), max(v2, v0))] ?: return@forEach
+                    val m01 = edgeMidpoints[min(v0, v1) to max(v0, v1)] ?: return@forEach
+                    val m12 = edgeMidpoints[min(v1, v2) to max(v1, v2)] ?: return@forEach
+                    val m20 = edgeMidpoints[min(v2, v0) to max(v2, v0)] ?: return@forEach
 
                     faces.add(Triple(v0, m01, m20))
                     faces.add(Triple(m01, v1, m12))

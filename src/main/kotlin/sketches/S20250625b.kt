@@ -57,13 +57,13 @@ class S20250625b : ExtendedPApplet(P3D)
         }
 
         // convert to 3D
-        val minDepth = polygons.asSequence().map { it.getCenter().y }.min()
-        val maxDepth = polygons.asSequence().map { it.getCenter().y }.max()
+        val minDepth = polygons.minOf { it.center.y }
+        val maxDepth = polygons.maxOf { it.center.y }
         polygons3D.clear()
         while (polygons.isNotEmpty())
         {
             val polygon = polygons.removeFirst()
-            val c = polygon.getCenter()
+            val c = polygon.center
             val r = random(1.0f) + 0.5f
             val g = abs(randomGaussian())
             val s = easeInPolynomial((c.y - maxDepth) / (minDepth - maxDepth), 2.0f)
@@ -130,9 +130,9 @@ class S20250625b : ExtendedPApplet(P3D)
 
     private inner class RegularPolygon
     {
-        private val center: PVector
-        private val radius: Float
-        private val vertices = mutableListOf<PVector>()
+        val center: PVector
+        val radius: Float
+        val vertices = mutableListOf<PVector>()
 
         constructor(center: PVector, radius: Float, numVertices: Int)
         {
@@ -148,12 +148,6 @@ class S20250625b : ExtendedPApplet(P3D)
                 vertices.add(vertex)
             }
         }
-
-        fun getCenter(): PVector = center.copy()
-
-        fun getRadius(): Float = radius
-
-        fun getVertices(): List<PVector> = vertices.toList()
 
         fun draw()
         {
@@ -237,15 +231,14 @@ class S20250625b : ExtendedPApplet(P3D)
 
         init
         {
-            val vertices = bottomFace.getVertices()
+            val vertices = bottomFace.vertices
             val hv = PVector(0.0f, -height, 0.0f)
             val col = palette.random()
 
             // top
-            surfaces.add(AttribPolygon(vertices.asSequence()
-                .map { Attribute(PVector(it.x, -yOffset * 1.3f, it.y).add(hv), col) }
-                .toList())
-            )
+            surfaces.add(AttribPolygon(
+                vertices.map { Attribute(PVector(it.x, -yOffset * 1.3f, it.y).add(hv), col) }
+            ))
 
             // side
             vertices.forEachIndexed { idx, v ->
