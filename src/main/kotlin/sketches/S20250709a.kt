@@ -234,7 +234,6 @@ class S20250709a : ExtendedPApplet(P3D)
                     return
                 }
             }
-            curves.toList()
             isFull = true
         }
 

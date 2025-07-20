@@ -178,7 +178,6 @@ class S20250630a : ExtendedPApplet(P3D)
         {
             private val bottomFace: List<PVector> = icosphere.getFaceVertices(face)
                 .map { icosphere.getVertexPosition(it) ?: throw IllegalArgumentException("Invalid face index: $face") }
-                .toList()
             private val center: PVector = PVector.add(PVector.add(bottomFace[0], bottomFace[1]), bottomFace[2]).div(3.0f)
             private val normal: PVector = center.copy().normalize()
             private val color = palette.random()
