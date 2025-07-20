@@ -40,6 +40,7 @@ class S20250719a : ExtendedPApplet(P3D)
         val initPolygons = mutableListOf<FractalPolygon>()
         val parentVertices = MutableList(mesh.getVertexCount() / 4) { it }
 
+        // add pentagon meshes
         parentVertices.forEach { v ->
             val adjacent = mesh.getAdjacentVertices(v).reversed()
             initPolygons.add(FractalPolygon(
@@ -48,7 +49,7 @@ class S20250719a : ExtendedPApplet(P3D)
             ))
         }
 
-        // remain triangle polygons
+        // add remained triangle meshes
         repeat(mesh.getFaceCount()) { remainFaces.add(it) }
         remainFaces.removeAll(parentVertices.map { mesh.getAdjacentFaces(it) }.flatten())
         remainFaces.forEach { face ->
@@ -59,13 +60,12 @@ class S20250719a : ExtendedPApplet(P3D)
             ))
         }
 
-        // division pentagon
-        var tmpPentagons = initPolygons.toList()
-        repeat(4) { tmpPentagons = tmpPentagons.flatMap { it.subdivision() } }
+        // division polygons
+        var tmpPolygon = initPolygons.toList()
+        repeat(4) { tmpPolygon = tmpPolygon.flatMap { it.subdivision() } }
 
-        // pentagon meshes
         polygons.clear()
-        polygons.addAll(tmpPentagons)
+        polygons.addAll(tmpPolygon)
     }
 
     override fun draw()
