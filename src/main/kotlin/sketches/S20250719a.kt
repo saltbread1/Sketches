@@ -7,10 +7,10 @@ import processing.core.PVector
 class S20250719a : ExtendedPApplet(P3D)
 {
     private val palette = createPalette("001219-005f73-0a9396-94d2bd-e9d8a6-ee9b00-ca6702-bb3e03-ae2012-9b2226")
-    private val eye = PVector(0.0f, 0.0f, 2.0f)
+    private val eye = PVector(0.0f, 0.0f, 1.5f)
     private val center = PVector(0.0f, 0.0f, 0.0f)
     private val fov = HALF_PI
-    private val far = 100.0f
+    private val far = 10.0f
     private val meshData = Icosahedron()
     private val mesh = HalfEdgeMesh()
     private val pentagons = mutableListOf<Pentagon>()
@@ -19,6 +19,7 @@ class S20250719a : ExtendedPApplet(P3D)
     override fun setup()
     {
         mesh.buildMesh(meshData)
+        mesh.subdivide { v0, v1 -> PVector.lerp(v0, v1, 0.5f) }
         mesh.subdivide { v0, v1 -> PVector.lerp(v0, v1, 0.5f) }
         val parentNumVertices = MutableList(mesh.getVertexCount()) { it }
         mesh.subdivide { v0, v1 -> PVector.lerp(v0, v1, 0.5f) }
@@ -29,18 +30,37 @@ class S20250719a : ExtendedPApplet(P3D)
             throw IllegalStateException("Invalid mesh state: $error")
         }
 
+        pentagons.clear()
+        remainFaces.clear()
+        val initPentagons = mutableListOf<Pentagon>()
+
         parentNumVertices.forEach { v ->
             val adjacent = mesh.getAdjacentVertices(v).reversed()
-            pentagons.add(Pentagon(
-                mesh.getVertexPosition(v) ?: return@forEach,
-                adjacent.map { mesh.getVertexPosition(it) ?: return@forEach },
-                mesh.getVertexNormal(v) ?: return@forEach,
-                adjacent.map { mesh.getVertexNormal(it) ?: return@forEach },
+            initPentagons.add(Pentagon(
+                adjacent.map { Attribute(
+                    mesh.getVertexPosition(it) ?: return@forEach,
+                    mesh.getVertexNormal(it) ?: return@forEach
+                ) },
+                Attribute(
+                    mesh.getVertexPosition(v) ?: return@forEach,
+                    mesh.getVertexNormal(v) ?: return@forEach
+                ),
                 ))
         }
 
+        // remain triangle polygons
         repeat(mesh.getFaceCount()) { remainFaces.add(it) }
         remainFaces.removeAll(parentNumVertices.map { mesh.getAdjacentFaces(it) }.flatten())
+
+        // division pentagon
+        var tmpPentagons = initPentagons.toList()
+        repeat(3)
+        {
+            tmpPentagons = tmpPentagons.flatMap { it.subdivision() }
+        }
+
+        // pentagon meshes
+        pentagons.addAll(tmpPentagons)
 
         perspective(fov, aspect, 0.1f, far)
         camera(eye.x, eye.y, eye.z, center.x, center.y, center.z, 0.0f, 1.0f, 0.0f)
@@ -58,8 +78,8 @@ class S20250719a : ExtendedPApplet(P3D)
         val diffuse = PVector(0.8f, 0.8f, 0.8f).mult(255.0f)
 
         push()
-//        noStroke()
-        stroke(0.0f)
+        noStroke()
+//        stroke(0.0f)
 
         pointLight(diffuse.x, diffuse.y, diffuse.z, lightPos.x, lightPos.y, lightPos.z)
         ambientLight(ambient.x, ambient.y, ambient.z)
@@ -86,34 +106,66 @@ class S20250719a : ExtendedPApplet(P3D)
         pop()
     }
 
-    private inner class Pentagon(private val center: PVector,
-                                 private val vertices: List<PVector>,
-                                 private val cNormals: PVector,
-                                 private val vNormals: List<PVector>,
+    private inner class Attribute(val position: PVector, val normal: PVector)
+    {
+        fun vertex()
+        {
+            normal(normal.x, normal.y, normal.z)
+            vertex(position.x, position.y, position.z)
+        }
+
+        fun add(attrib: Attribute) = Attribute(
+            PVector.add(position, attrib.position),
+            PVector.add(normal, attrib.normal).normalize(),
+        )
+
+        fun lerp(attrib: Attribute, amt: Float) = Attribute(
+            PVector.lerp(position, attrib.position, amt),
+            PVector.lerp(normal, attrib.normal, amt).normalize(),
+        )
+    }
+
+    private inner class Pentagon(
+        private val vertices: List<Attribute>,
+        private val center: Attribute,
     )
     {
         private val color = palette.random()
 
-        fun subdivision()
+        fun subdivision() : List<Pentagon>
         {
+            val middles = vertices.mapIndexed { i, v0 ->
+                val v1 = vertices[(i + 1) % vertices.size]
+                v0.lerp(v1, 0.5f)
+            }
 
+            val centerVertices = middles.map { mid ->
+                mid.lerp(center, 0.5f)
+            }
+
+            val ret = vertices.mapIndexed { i, _ ->
+                val i2 = (i + 1) % vertices.size
+                val newVertices = listOf(vertices[i2], middles[i2], centerVertices[i2], centerVertices[i], middles[i])
+                val newCenter = newVertices.reduce { acc, v -> acc.add(v) }
+                newCenter.position.div(newVertices.size.toFloat())
+                Pentagon(newVertices, newCenter)
+            }.toMutableList()
+
+            ret.add(Pentagon(centerVertices, center))
+
+            return ret
         }
 
         fun draw()
         {
             pushStyle()
             fill(color)
-            vertices.forEachIndexed { i, p0 ->
+            vertices.forEachIndexed { i, attrib0 ->
+                val attrib1 = vertices[(i + 1) % vertices.size]
                 beginShape()
-                val p1 = vertices[(i + 1) % vertices.size]
-                val n0 = vNormals.getOrNull(i) ?: return@forEachIndexed
-                val n1 = vNormals.getOrNull((i + 1) % vertices.size) ?: return@forEachIndexed
-                normal(cNormals.x, cNormals.y, cNormals.z)
-                vertex(center.x, center.y, center.z)
-                normal(n0.x, n0.y, n0.z)
-                vertex(p0.x, p0.y, p0.z)
-                normal(n1.x, n1.y, n1.z)
-                vertex(p1.x, p1.y, p1.z)
+                center.vertex()
+                attrib0.vertex()
+                attrib1.vertex()
                 endShape()
             }
             popStyle()
