@@ -6,14 +6,10 @@ import processing.core.PVector
 
 class S20250719a : ExtendedPApplet(P3D)
 {
-    private val palettes = arrayOf(
-//        createPalette("011627-fdfffc-2ec4b6-e71d36-ff9f1c"),
-        createPalette("780000-c1121f-fdf0d5-003049-669bbc"),
-        createPalette("e63946-f1faee-a8dadc-457b9d-1d3557"),
-    )
+    private val palette = createPalette("03045e-023e8a-0077b6-0096c7-00b4d8-48cae4-90e0ef-ade8f4-caf0f8-03071e-370617-6a040f-9d0208-d00000-dc2f02-e85d04-f48c06-faa307-ffba08")
     private val eye = PVector(0.0f, 0.0f, 2.0f)
     private val center = PVector(0.0f, 0.0f, 0.0f)
-    private val viewFactor = 1.67f
+    private val viewFactor = 1.77f
     private val meshData = Icosahedron()
     private val mesh = HalfEdgeMesh()
     private val polygons = mutableListOf<FractalPolygon>()
@@ -32,6 +28,7 @@ class S20250719a : ExtendedPApplet(P3D)
 
         perspective(2.0f * atan(viewFactor / 2.0f), aspect, 0.1f, 10.0f)
         camera(eye.x, eye.y, eye.z, center.x, center.y, center.z, 0.0f, 1.0f, 0.0f)
+        hint(DISABLE_DEPTH_TEST)
 
         init()
         noLoop()
@@ -64,7 +61,7 @@ class S20250719a : ExtendedPApplet(P3D)
 
         // division pentagon
         var tmpPentagons = initPolygons.toList()
-        repeat(3) { tmpPentagons = tmpPentagons.flatMap { it.subdivision() } }
+        repeat(4) { tmpPentagons = tmpPentagons.flatMap { it.subdivision() } }
 
         // pentagon meshes
         polygons.clear()
@@ -73,7 +70,7 @@ class S20250719a : ExtendedPApplet(P3D)
 
     override fun draw()
     {
-        background(12.0f, 12.0f, 18.0f)
+        background(240.0f, 240.0f, 250.0f)
 
         pushStyle()
         noStroke()
@@ -96,7 +93,7 @@ class S20250719a : ExtendedPApplet(P3D)
         redraw()
     }
 
-    private fun customRandom() = sigmoid(randomGaussian(), 0.62f)
+    private fun customRandom() = clamp(randomGaussian() * 1.7f, -1.0f, 1.0f) + 0.5f
 
     private fun project(pos: PVector): PVector
     {
@@ -104,10 +101,33 @@ class S20250719a : ExtendedPApplet(P3D)
         return PVector(pos.x * k, pos.y * k)
     }
 
+    private fun applyStyle(style: Style, color: Int)
+    {
+        when (style)
+        {
+            Style.FILL ->
+            {
+                noStroke()
+                fill(color, 160.0f)
+            }
+            Style.STROKE ->
+            {
+                noFill()
+                stroke(color, 80.0f)
+            }
+        }
+    }
+
+    private enum class Style
+    {
+        FILL,
+        STROKE,
+    }
+
     private inner class FractalPolygon(
         val vertices: List<PVector>,
         val center: PVector,
-        private val palette: IntArray = palettes.random(),
+        private val style: Style = Style.entries.random(),
     )
     {
         fun subdivision(): List<FractalPolygon>
@@ -124,10 +144,10 @@ class S20250719a : ExtendedPApplet(P3D)
             val ret = vertices.mapIndexed { i, _ ->
                 val i2 = (i + 1) % vertices.size
                 val newVertices = listOf(vertices[i2], middles[i2], centerVertices[i2], centerVertices[i], middles[i])
-                FractalPolygon(newVertices, calcCenter(newVertices), palette)
+                FractalPolygon(newVertices, calcCenter(newVertices), style)
             }.toMutableList()
 
-            ret.add(FractalPolygon(centerVertices, center, palette))
+            ret.add(FractalPolygon(centerVertices, center, style))
 
             return ret
         }
@@ -137,16 +157,17 @@ class S20250719a : ExtendedPApplet(P3D)
         fun draw()
         {
             val projVertPos = vertices.map { project(it) }
-            if (projVertPos.none { it.x >= -aspect * viewFactor && it.x <= aspect * viewFactor && it.y >= -viewFactor && it.y <= viewFactor }) return
             val projCenter = project(center)
             val colors = palette.toList().shuffled().take(2)
 
+            if (projVertPos.none { it.x >= -aspect * viewFactor && it.x <= aspect * viewFactor && it.y >= -viewFactor && it.y <= viewFactor }) return // out of range
+            if (projVertPos.any { PVector.sub(it, projCenter).magSq() > sq(0.3f) }) return // too large
+
             pushStyle()
-            noStroke()
             beginShape(TRIANGLE_FAN)
-            fill(colors[0])
+            applyStyle(style, colors[0])
             vertex(projCenter.x, projCenter.y, calcHeight(projCenter))
-            fill(colors[1])
+            applyStyle(style, colors[1])
             projVertPos.forEach {
                 vertex(it.x, it.y, calcHeight(it))
             }
@@ -157,7 +178,7 @@ class S20250719a : ExtendedPApplet(P3D)
 
         private fun calcHeight(coord: PVector): Float
         {
-            return noise((coord.x + 100.0f) * 2.3f, (coord.y + 200.0f) * 2.3f) * 0.6f
+            return noise((coord.x + 100.0f) * 2.3f, (coord.y + 200.0f) * 2.3f)
         }
     }
 }
