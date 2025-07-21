@@ -7,8 +7,6 @@ import processing.core.PVector
 class S20250719a : ExtendedPApplet(P3D)
 {
     private val palette = createPalette("03045e-023e8a-0077b6-0096c7-00b4d8-48cae4-90e0ef-ade8f4-caf0f8-03071e-370617-6a040f-9d0208-d00000-dc2f02-e85d04-f48c06-faa307-ffba08")
-    private val eye = PVector(0.0f, 0.0f, 2.0f)
-    private val center = PVector(0.0f, 0.0f, 0.0f)
     private val viewFactor = 1.77f
     private val meshData = Icosahedron()
     private val mesh = HalfEdgeMesh()
@@ -17,8 +15,7 @@ class S20250719a : ExtendedPApplet(P3D)
     override fun setup()
     {
         mesh.buildMesh(meshData)
-        mesh.subdivide { v0, v1 -> PVector.lerp(v0, v1, 0.5f).normalize() }
-        mesh.subdivide { v0, v1 -> PVector.lerp(v0, v1, 0.5f).normalize() }
+        repeat(2) { mesh.subdivide { v0, v1 -> PVector.lerp(v0, v1, 0.5f).normalize() } }
 
         val error = mesh.validate()
         if (error.isNotEmpty())
@@ -27,7 +24,7 @@ class S20250719a : ExtendedPApplet(P3D)
         }
 
         perspective(2.0f * atan(viewFactor / 2.0f), aspect, 0.1f, 10.0f)
-        camera(eye.x, eye.y, eye.z, center.x, center.y, center.z, 0.0f, 1.0f, 0.0f)
+        camera(0.0f, 0.0f, 2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f)
         hint(DISABLE_DEPTH_TEST)
 
         init()
