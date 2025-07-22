@@ -67,7 +67,7 @@ class S20250719a : ExtendedPApplet(P3D)
 
     override fun draw()
     {
-        background(240.0f, 240.0f, 250.0f)
+        background(PAPER_WHITE)
 
         pushStyle()
         noStroke()
@@ -122,8 +122,8 @@ class S20250719a : ExtendedPApplet(P3D)
     }
 
     private inner class FractalPolygon(
-        val vertices: List<PVector>,
-        val center: PVector,
+        private val vertices: List<PVector>,
+        private val center: PVector,
         private val style: Style = Style.entries.random(),
     )
     {
@@ -144,7 +144,7 @@ class S20250719a : ExtendedPApplet(P3D)
                 FractalPolygon(newVertices, calcCenter(newVertices), style)
             }.toMutableList()
 
-            ret.add(FractalPolygon(centerVertices, center, style))
+            ret.add(FractalPolygon(centerVertices, calcCenter(centerVertices), style))
 
             return ret
         }
