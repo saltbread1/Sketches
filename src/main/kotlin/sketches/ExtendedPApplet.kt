@@ -14,6 +14,15 @@ abstract class ExtendedPApplet(private val renderer: String, protected val isSav
 {
     protected val aspect by lazy { width.toFloat() / height.toFloat() }
 
+    companion object
+    {
+        const val PAPER_WHITE = 0xfff5f5f5.toInt()
+        const val REFINED_WHITE = 0xffe7eff5.toInt()
+        const val RETRO_WHITE = 0xfff1efe2.toInt()
+        const val NIGHT_BLACK = 0xff0c0c12.toInt()
+        const val RICH_BLACK = 0xff0d0e16.toInt()
+    }
+
     override fun settings()
     {
         if (isSave)
