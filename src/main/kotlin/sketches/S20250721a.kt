@@ -5,7 +5,7 @@ import mesh.data.Icosahedron
 import processing.core.PVector
 import kotlin.collections.map
 
-class S20250721a : ExtendedPApplet(P3D, true)
+class S20250721a : ExtendedPApplet(P3D)
 {
     private val meshData = Icosahedron()
     private val mesh = HalfEdgeMesh()
