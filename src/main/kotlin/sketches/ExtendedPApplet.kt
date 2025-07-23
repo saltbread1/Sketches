@@ -37,14 +37,6 @@ abstract class ExtendedPApplet(private val renderer: String, protected val isSav
         }
     }
 
-    override fun keyPressed()
-    {
-        if (key == ESC)
-        {
-            return
-        }
-    }
-
     // -------- Sketch Utils -------- //
 
     protected fun createPalette(colors: String): IntArray =
