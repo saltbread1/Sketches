@@ -5,8 +5,24 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="604821d5-04d4-484a-bce1-fe37c1651b17" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/libs/core-4.4.7.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/libs/gluegen-rt-2.5.0-natives-linux-aarch64.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/libs/gluegen-rt-2.5.0-natives-linux-amd64.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/libs/gluegen-rt-2.5.0-natives-macosx-universal.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/libs/gluegen-rt-2.5.0-natives-windows-amd64.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/libs/gluegen-rt-2.5.0.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/libs/jogl-all-2.5.0-natives-linux-aarch64.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/libs/jogl-all-2.5.0-natives-linux-amd64.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/libs/jogl-all-2.5.0-natives-macosx-universal.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/libs/jogl-all-2.5.0-natives-windows-amd64.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/libs/jogl-all-2.5.0.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/sketches/S20250715a.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/sketches/S20250719b.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/sketches/S20250726a.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/mesh/spot.obj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/sketches/S20250719a.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/sketches/S20250719a.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -50,6 +66,7 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GradleScriptDefinitionsStorage" workingDir="$PROJECT_DIR$" gradleHome="$USER_HOME$/.gradle/wrapper/dists/gradle-8.2-bin/bbg7u40eoinfdyxsxr3z4i7ta/gradle-8.2" javaHome="/Library/Java/JavaVirtualMachines/amazon-corretto-17.jdk/Contents/Home" gradleVersion="8.2" />
   <component name="ProjectColorInfo">{
   &quot;customColor&quot;: &quot;&quot;,
   &quot;associatedIndex&quot;: 5
@@ -174,6 +191,10 @@
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="update dependencies for platform-specific JOGL support" />
+    <option name="LAST_COMMIT_MESSAGE" value="update dependencies for platform-specific JOGL support" />
   </component>
   <component name="XDebuggerManager">
     <watches-manager>
