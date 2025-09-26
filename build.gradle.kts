@@ -8,22 +8,52 @@ version = "1.0"
 
 repositories {
     mavenCentral()
-    maven (url = "https://jogamp.org/deployment/maven/")
+    flatDir { dirs("libs") }
 }
 
+val osName = System.getProperty("os.name").lowercase()
+val osArch = System.getProperty("os.arch").lowercase()
+
 dependencies {
-    implementation("org.processing:core:4.4.4")
+    // processing core
+    implementation(group = "", name = "core", version = "4.4.7")
 
-    /**** JOGL natives ****/
-    // macos
-    // TODO: switch based on OS
-    runtimeOnly("org.jogamp.gluegen:gluegen-rt:2.5.0:natives-macosx-universal")
-    runtimeOnly("org.jogamp.jogl:jogl-all:2.5.0:natives-macosx-universal")
+    // jogl
+    implementation(group = "", name = "jogl-all", version = "2.5.0")
+    implementation(group = "", name = "gluegen-rt", version = "2.5.0")
 
-    // native window
-    runtimeOnly("org.jogamp.jogl:nativewindow-main:2.5.0")
+    // jogl natives
+    when
+    {
+        osName.contains("mac") ->
+        {
+            runtimeOnly(group = "", name = "jogl-all-2.5.0-natives-macosx-universal", version = "2.5.0")
+            runtimeOnly(group = "", name = "gluegen-rt-2.5.0-natives-macosx-universal", version = "2.5.0")
+        }
 
-    testImplementation(kotlin("test"))
+        osName.contains("windows") ->
+        {
+            runtimeOnly(group = "", name = "jogl-all-2.5.0-natives-windows-amd64", version = "2.5.0")
+            runtimeOnly(group = "", name = "gluegen-rt-2.5.0-natives-windows-amd64", version = "2.5.0")
+        }
+
+        osName.contains("linux") ->
+        {
+            // Linux
+            val arch = when
+            {
+                osArch.contains("aarch64") || osArch.contains("arm64") -> "aarch64"
+                else -> "amd64"
+            }
+            runtimeOnly(group = "", name = "jogl-all-2.5.0-natives-linux-$arch", version = "2.5.0")
+            runtimeOnly(group = "", name = "gluegen-rt-2.5.0-natives-linux-$arch", version = "2.5.0")
+        }
+
+        else ->
+        {
+            println("Unsupported OS: $osName")
+        }
+    }
 }
 
 kotlin {
