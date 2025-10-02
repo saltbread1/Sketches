@@ -1,5 +1,6 @@
 package sketches
 
+@Suppress("unused")
 class S20250718a : ExtendedPApplet(P3D)
 {
     private val palette = createPalette("001219-005f73-0a9396-94d2bd-e9d8a6-ee9b00-ca6702-bb3e03-ae2012-9b2226")

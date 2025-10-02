@@ -4,6 +4,7 @@ import processing.core.PGraphics
 import processing.core.PVector
 import kotlin.repeat
 
+@Suppress("unused")
 class S20250623a : ExtendedPApplet(P2D)
 {
     private val palette = createPalette("d3cfdf-5db1b8-650f24-b10b24-1d38ac-0a1534-3a5431-bdb28d-2e140a-689578")

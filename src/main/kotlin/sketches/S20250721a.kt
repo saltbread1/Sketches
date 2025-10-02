@@ -5,6 +5,7 @@ import mesh.data.Icosahedron
 import processing.core.PVector
 import kotlin.collections.map
 
+@Suppress("unused")
 class S20250721a : ExtendedPApplet(P3D)
 {
     private val meshData = Icosahedron()

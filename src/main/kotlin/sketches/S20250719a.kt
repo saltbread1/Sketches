@@ -4,6 +4,7 @@ import mesh.HalfEdgeMesh
 import mesh.data.Icosahedron
 import processing.core.PVector
 
+@Suppress("unused")
 class S20250719a : ExtendedPApplet(P3D)
 {
     private val palette = createPalette("03045e-023e8a-0077b6-0096c7-00b4d8-48cae4-90e0ef-ade8f4-caf0f8-03071e-370617-6a040f-9d0208-d00000-dc2f02-e85d04-f48c06-faa307-ffba08")

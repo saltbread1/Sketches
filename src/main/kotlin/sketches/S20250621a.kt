@@ -2,6 +2,7 @@ package sketches
 
 import processing.core.PGraphics
 
+@Suppress("unused")
 class S20250621a : ExtendedPApplet(P2D)
 {
     private val far = 100.0f

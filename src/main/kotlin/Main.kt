@@ -17,10 +17,10 @@ fun main(args: Array<String>)
     }
     catch (_: ClassNotFoundException)
     {
-        System.err.println("Class '$sketchClassName' is not found in 'sketches' package")
+        System.err.println("\u001B[31mClass '$sketchClassName' is not found in 'sketches' package\u001B[0m")
     }
     catch (e: Exception)
     {
-        System.err.println("Error: ${e.message}")
+        System.err.println("\u001B[31mError: ${e.message}\u001B[0m")
     }
 }

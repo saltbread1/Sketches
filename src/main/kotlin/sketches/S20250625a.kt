@@ -3,6 +3,7 @@ package sketches
 import processing.core.PGraphics
 import processing.core.PImage
 
+@Suppress("unused")
 class S20250625a : ExtendedPApplet(P3D)
 {
     private val palette = createPalette("d3cfdf-5db1b8-650f24-b10b24-1d38ac-0a1534-3a5431-bdb28d-2e140a-689578")
