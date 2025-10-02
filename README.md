@@ -1,10 +1,10 @@
 # Processing Sketches
 
-My sketches by Processing from 2025.
+Sketches created using [Processing](https://processing.org/).
 
 ## Libraries
 
-- [Processing 4.4.4](org.processing:core:4.3.4)
+- Processing 4.4.7
 
 ## Run
 
