@@ -8,21 +8,15 @@ attribute vec4 color;
 
 varying vec3 vPosition;
 varying vec3 vNormal;
-varying vec2 vUV;
+varying vec3 vSampleDirection;
 varying vec4 vColor;
-
-const float PI = acos(-1.0);
 
 void main()
 {
     vPosition = (modelviewMatrix * position).xyz;
     vNormal = normalize(normalMatrix * normal);
+    vSampleDirection = mix(normalize(position.xyz), normalize(normal), 0.1);
     vColor = color;
-
-    vec3 dir = normalize(position.xyz + normal * 0.08);
-    float phi = atan( dir.x, dir.z );
-    float theta = asin( dir.y );
-    vUV = vec2(phi / (2.0 * PI) + 0.5, theta / PI + 0.5);
 
     gl_Position = transformMatrix * position;
 }
