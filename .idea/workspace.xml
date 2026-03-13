@@ -4,8 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="604821d5-04d4-484a-bce1-fe37c1651b17" name="Changes" comment="suppress unused warnings across sketches">
+    <list default="true" id="604821d5-04d4-484a-bce1-fe37c1651b17" name="Changes" comment="update">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/sketches/ExtendedPApplet.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/sketches/ExtendedPApplet.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/sketches/S20260304a.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/sketches/S20260304a.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/shaders/S20260304a/panorama.frag" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/shaders/S20260304a/panorama.frag" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/shaders/S20260304a/panorama.vert" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/shaders/S20260304a/panorama.vert" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -74,7 +78,7 @@
     "git-widget-placeholder": "development",
     "junie.onboarding.icon.badge.shown": "true",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "/Users/sakaguchitakeru/workspace/CreativeCoding/Sketches/src/main/resources/shaders",
+    "last_opened_file_path": "/Users/sakaguchitakeru/workspace/CreativeCoding/Sketches/src/main/resources/shaders/S20260304a",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -90,6 +94,7 @@
 }]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/src/main/resources/shaders/S20260304a" />
       <recent name="$PROJECT_DIR$/src/main/resources/shaders" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
@@ -193,7 +198,23 @@
       <option name="project" value="LOCAL" />
       <updated>1758902396703</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="WIP: S20260304a">
+      <option name="closed" value="true" />
+      <created>1772634809900</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1772634809900</updated>
+    </task>
+    <task id="LOCAL-00003" summary="update">
+      <option name="closed" value="true" />
+      <created>1772634822185</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1772634822185</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -201,7 +222,9 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="update dependencies for platform-specific JOGL support" />
-    <option name="LAST_COMMIT_MESSAGE" value="update dependencies for platform-specific JOGL support" />
+    <MESSAGE value="WIP: S20260304a" />
+    <MESSAGE value="update" />
+    <option name="LAST_COMMIT_MESSAGE" value="update" />
   </component>
   <component name="XDebuggerManager">
     <watches-manager>
