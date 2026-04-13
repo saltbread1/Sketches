@@ -151,17 +151,11 @@ abstract class ExtendedPApplet(private val renderer: String, protected val isSav
     {
         // Get a view matrix whose up vector is flipped.
         val viewMat = (pg as PGraphicsOpenGL).camera.get()
-        viewMat.m00 *= -1.0f
-        viewMat.m01 *= -1.0f
-        viewMat.m02 *= -1.0f
-        viewMat.m10 *= -1.0f
-        viewMat.m11 *= -1.0f
-        viewMat.m12 *= -1.0f
 
-        val side = PVector(viewMat.m00, viewMat.m10, viewMat.m20)
-        val up = PVector(viewMat.m01, viewMat.m11, viewMat.m21)
-        val forward = PVector(viewMat.m02, viewMat.m12, viewMat.m22)
-        return PVector.mult(side, v.x).add(PVector.mult(up, v.y)).add(PVector.mult(forward, v.z)).normalize()
+        val side = PVector(viewMat.m00, viewMat.m01, viewMat.m02)
+        val up = PVector(-viewMat.m10, -viewMat.m11, -viewMat.m12)
+        val forward = PVector(viewMat.m20, viewMat.m21, viewMat.m22)
+        return PVector.mult(side, v.x).add(PVector.mult(up, v.y)).add(PVector.mult(forward, v.z))
     }
 
     protected fun rotate(q: Quaternion, v: PVector): PVector

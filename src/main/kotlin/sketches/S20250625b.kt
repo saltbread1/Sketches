@@ -107,7 +107,7 @@ class S20250625b : ExtendedPApplet(P3D)
 
     private fun intersectY0Plane(cdir: PVector): PVector
     {
-        val dir = viewToWorld(cdir)
+        val dir = viewToWorld(cdir).normalize()
         var t = -eye.y / dir.y
         val maxT = far
         if (abs(dir.y) < 1e-4f || t < 0.0f || t > maxT)
