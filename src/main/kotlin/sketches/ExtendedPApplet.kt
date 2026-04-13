@@ -5,6 +5,7 @@ import processing.core.PGraphics
 import processing.core.PShape
 import processing.core.PVector
 import processing.opengl.PGraphicsOpenGL
+import util.Quaternion
 import java.io.File
 import java.time.ZoneId
 import java.time.ZonedDateTime
@@ -141,8 +142,6 @@ abstract class ExtendedPApplet(private val renderer: String, protected val isSav
         return s * t < 0.0f
     }
 
-    // -------- GL Utils -------- //
-
     protected fun viewToWorld(v: PVector): PVector
     {
         return viewToWorld(v, g)
@@ -163,6 +162,12 @@ abstract class ExtendedPApplet(private val renderer: String, protected val isSav
         val up = PVector(viewMat.m01, viewMat.m11, viewMat.m21)
         val forward = PVector(viewMat.m02, viewMat.m12, viewMat.m22)
         return PVector.mult(side, v.x).add(PVector.mult(up, v.y)).add(PVector.mult(forward, v.z)).normalize()
+    }
+
+    protected fun rotate(q: Quaternion, v: PVector): PVector
+    {
+        val ret = q.mul(Quaternion(v)).mul(q.inverse())
+        return PVector(ret.x, ret.y, ret.z)
     }
 
     // -------- Shapes -------- //
