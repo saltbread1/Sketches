@@ -1,9 +1,6 @@
 package sketches
 
-import processing.core.PApplet
-import processing.core.PGraphics
-import processing.core.PShape
-import processing.core.PVector
+import processing.core.*
 import processing.opengl.PGraphicsOpenGL
 import util.Quaternion
 import java.io.File
@@ -142,20 +139,28 @@ abstract class ExtendedPApplet(private val renderer: String, protected val isSav
         return s * t < 0.0f
     }
 
-    protected fun viewToWorld(v: PVector): PVector
-    {
-        return viewToWorld(v, g)
-    }
+    protected fun viewToWorld(v: PVector): PVector = viewToWorld(v, g)
 
     protected fun viewToWorld(v: PVector, pg: PGraphics): PVector
     {
-        // Get a view matrix whose up vector is flipped.
         val viewMat = (pg as PGraphicsOpenGL).camera.get()
-
         val side = PVector(viewMat.m00, viewMat.m01, viewMat.m02)
         val up = PVector(-viewMat.m10, -viewMat.m11, -viewMat.m12)
         val forward = PVector(viewMat.m20, viewMat.m21, viewMat.m22)
         return PVector.mult(side, v.x).add(PVector.mult(up, v.y)).add(PVector.mult(forward, v.z))
+    }
+
+    protected fun applyBillboard() = applyBillboard(g)
+
+    protected fun applyBillboard(pg: PGraphics)
+    {
+        val pg = pg as PGraphicsOpenGL
+        val viewMat = pg.camera.get()
+        viewMat.m03 = 0.0f
+        viewMat.m13 = 0.0f
+        viewMat.m23 = 0.0f
+        viewMat.transpose()
+        pg.applyMatrix(viewMat)
     }
 
     protected fun rotate(q: Quaternion, v: PVector): PVector
