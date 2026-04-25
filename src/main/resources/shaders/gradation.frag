@@ -1,8 +1,3 @@
-#ifdef GL_ES
-precision mediump float;
-precision mediump int;
-#endif
-
 uniform vec2 direction;
 uniform vec3 startColor;
 uniform vec3 endColor;
