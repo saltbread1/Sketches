@@ -22,7 +22,6 @@ void main()
     float theta = asin(dir.y);
     vec2 uv = vec2(phi / (2.0 * PI) + 0.5, theta / PI + 0.5);
     vec3 col = texture(panorama, uv).rgb;
-    col *= col * 1.3;
 
     gl_FragColor = vec4(toSRGB(col), 1.0) * vColor;
 }
