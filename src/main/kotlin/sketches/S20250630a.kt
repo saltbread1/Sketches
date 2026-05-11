@@ -9,6 +9,7 @@ import java.util.concurrent.ConcurrentLinkedDeque
 /**
  * Random walk on the icosphere.
  */
+@Suppress("unused")
 class S20250630a : ExtendedPApplet(P3D)
 {
     private val palette1 = createPalette("250902-38040e-640d14-800e13-ad2831")

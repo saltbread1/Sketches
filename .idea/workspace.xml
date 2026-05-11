@@ -4,25 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="604821d5-04d4-484a-bce1-fe37c1651b17" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/libs/core-4.4.7.jar" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/libs/gluegen-rt-2.5.0-natives-linux-aarch64.jar" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/libs/gluegen-rt-2.5.0-natives-linux-amd64.jar" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/libs/gluegen-rt-2.5.0-natives-macosx-universal.jar" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/libs/gluegen-rt-2.5.0-natives-windows-amd64.jar" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/libs/gluegen-rt-2.5.0.jar" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/libs/jogl-all-2.5.0-natives-linux-aarch64.jar" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/libs/jogl-all-2.5.0-natives-linux-amd64.jar" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/libs/jogl-all-2.5.0-natives-macosx-universal.jar" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/libs/jogl-all-2.5.0-natives-windows-amd64.jar" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/libs/jogl-all-2.5.0.jar" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/kotlin/sketches/S20250715a.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/kotlin/sketches/S20250719b.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/kotlin/sketches/S20250726a.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/resources/mesh/spot.obj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+    <list default="true" id="604821d5-04d4-484a-bce1-fe37c1651b17" name="Changes" comment="260304a">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -79,29 +62,43 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Gradle.Debug.executor": "Run",
-    "Gradle.Download Sources.executor": "Run",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "git-widget-placeholder": "development",
-    "junie.onboarding.icon.badge.shown": "true",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "project.structure.last.edited": "Project",
-    "project.structure.proportion": "0.15",
-    "project.structure.side.proportion": "0.0",
-    "settings.editor.selected.configurable": "preferences.pluginManager",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Gradle.Debug.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.Download Sources.executor&quot;: &quot;Run&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;development&quot;,
+    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/sakaguchitakeru/workspace/CreativeCoding/Sketches/src/main/resources/shaders&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Project&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;MavenSettings&quot;,
+    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/src/main/resources/shaders" />
+      <recent name="$PROJECT_DIR$/src/main/resources/shaders/S20260304a" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/src/main/resources/shaders/S20260304a" />
+      <recent name="$PROJECT_DIR$/src/main/resources/textures" />
+      <recent name="$PROJECT_DIR$/src/main/resources/texture" />
+    </key>
     <key name="CopyKotlinDeclarationDialog.RECENTS_KEY">
       <recent name="sketches" />
     </key>
@@ -168,12 +165,73 @@
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <method v="2" />
     </configuration>
+    <configuration default="true" type="JetRunConfigurationType">
+      <module name="kotlin.scripts.KotlinBuildScript.build.gradle.kts" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
+      <module name="kotlin.scripts.KotlinBuildScript.build.gradle.kts" />
+      <option name="filePath" />
+      <method v="2" />
+    </configuration>
+    <configuration default="true" type="PythonConfigurationType" factoryName="Python">
+      <module name="kotlin.scripts.KotlinBuildScript.build.gradle.kts" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration default="true" type="Python.FlaskServer">
+      <module name="kotlin.scripts.KotlinBuildScript.build.gradle.kts" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="launchJavascriptDebuger" value="false" />
+      <method v="2" />
+    </configuration>
+    <configuration default="true" type="Tox" factoryName="Tox">
+      <module name="kotlin.scripts.KotlinBuildScript.build.gradle.kts" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <method v="2" />
+    </configuration>
   </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-jdk-9823dce3aa75-fbdcb00ec9e3-intellij.indexing.shared.core-IU-251.26094.121" />
-        <option value="bundled-js-predefined-d6986cc7102b-b26f3e71634d-JavaScript-IU-251.26094.121" />
+        <option value="bundled-jdk-9823dce3aa75-bf35d07a577b-intellij.indexing.shared.core-IU-252.26830.84" />
+        <option value="bundled-js-predefined-d6986cc7102b-3aa1da707db6-JavaScript-IU-252.26830.84" />
       </set>
     </attachedChunks>
   </component>
@@ -186,7 +244,146 @@
       <updated>1751598497678</updated>
       <workItem from="1751598499130" duration="47499000" />
       <workItem from="1752048620316" duration="23632000" />
+      <workItem from="1759443649435" duration="1051000" />
+      <workItem from="1759444709332" duration="500000" />
+      <workItem from="1759445228047" duration="915000" />
+      <workItem from="1774224080831" duration="9000" />
+      <workItem from="1774230248643" duration="3435000" />
+      <workItem from="1774353766937" duration="1927000" />
+      <workItem from="1776005466078" duration="43640000" />
+      <workItem from="1777075645152" duration="8976000" />
+      <workItem from="1778339775381" duration="6020000" />
+      <workItem from="1778454327061" duration="5039000" />
     </task>
+    <task id="LOCAL-00001" summary="update dependencies for platform-specific JOGL support">
+      <option name="closed" value="true" />
+      <created>1758902396703</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1758902396703</updated>
+    </task>
+    <task id="LOCAL-00002" summary="WIP: S20260304a">
+      <option name="closed" value="true" />
+      <created>1772634809900</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1772634809900</updated>
+    </task>
+    <task id="LOCAL-00003" summary="update">
+      <option name="closed" value="true" />
+      <created>1772634822185</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1772634822185</updated>
+    </task>
+    <task id="LOCAL-00004" summary="WIP: 20260304">
+      <option name="closed" value="true" />
+      <created>1773405270555</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1773405270555</updated>
+    </task>
+    <task id="LOCAL-00005" summary="add methods">
+      <option name="closed" value="true" />
+      <created>1773405282899</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1773405282899</updated>
+    </task>
+    <task id="LOCAL-00006" summary="update">
+      <option name="closed" value="true" />
+      <created>1773405291644</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1773405291644</updated>
+    </task>
+    <task id="LOCAL-00007" summary="WIP: 20260304">
+      <option name="closed" value="true" />
+      <created>1773405317907</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1773405317907</updated>
+    </task>
+    <task id="LOCAL-00008" summary="feat: add Quaternion class and integrate with ExtendedPApplet">
+      <option name="closed" value="true" />
+      <created>1776042215979</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1776042215979</updated>
+    </task>
+    <task id="LOCAL-00009" summary="fix: modified `viewToWorld` method in ExtendedPApplet">
+      <option name="closed" value="true" />
+      <created>1776042282091</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1776042282091</updated>
+    </task>
+    <task id="LOCAL-00010" summary="feat: create billboard transform function">
+      <option name="closed" value="true" />
+      <created>1776212232572</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1776212232572</updated>
+    </task>
+    <task id="LOCAL-00011" summary="fix: update frags">
+      <option name="closed" value="true" />
+      <created>1777082520062</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1777082520062</updated>
+    </task>
+    <task id="LOCAL-00012" summary="feat: create tex fog shader">
+      <option name="closed" value="true" />
+      <created>1777082539272</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1777082539272</updated>
+    </task>
+    <task id="LOCAL-00013" summary="wip: 260425a">
+      <option name="closed" value="true" />
+      <created>1777082621036</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1777082621036</updated>
+    </task>
+    <task id="LOCAL-00014" summary="260425a">
+      <option name="closed" value="true" />
+      <created>1778344811591</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1778344811591</updated>
+    </task>
+    <task id="LOCAL-00015" summary="260425a">
+      <option name="closed" value="true" />
+      <created>1778458032207</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1778458032207</updated>
+    </task>
+    <task id="LOCAL-00016" summary="260304a">
+      <option name="closed" value="true" />
+      <created>1778458654118</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1778458654118</updated>
+    </task>
+    <option name="localTasksCounter" value="17" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -194,7 +391,19 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="update dependencies for platform-specific JOGL support" />
-    <option name="LAST_COMMIT_MESSAGE" value="update dependencies for platform-specific JOGL support" />
+    <MESSAGE value="WIP: S20260304a" />
+    <MESSAGE value="add methods" />
+    <MESSAGE value="update" />
+    <MESSAGE value="WIP: 20260304" />
+    <MESSAGE value="feat: add Quaternion class and integrate with ExtendedPApplet" />
+    <MESSAGE value="fix: modified `viewToWorld` method in ExtendedPApplet" />
+    <MESSAGE value="feat: create billboard transform function" />
+    <MESSAGE value="fix: update frags" />
+    <MESSAGE value="feat: create tex fog shader" />
+    <MESSAGE value="wip: 260425a" />
+    <MESSAGE value="260425a" />
+    <MESSAGE value="260304a" />
+    <option name="LAST_COMMIT_MESSAGE" value="260304a" />
   </component>
   <component name="XDebuggerManager">
     <watches-manager>

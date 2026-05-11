@@ -2,6 +2,7 @@ package sketches
 
 import processing.core.PVector
 
+@Suppress("unused")
 class S20250709a : ExtendedPApplet(P3D)
 {
     private val palettes = arrayOf(

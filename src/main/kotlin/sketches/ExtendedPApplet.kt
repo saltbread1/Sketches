@@ -1,9 +1,8 @@
 package sketches
 
-import processing.core.PApplet
-import processing.core.PGraphics
-import processing.core.PVector
+import processing.core.*
 import processing.opengl.PGraphicsOpenGL
+import util.Quaternion
 import java.io.File
 import java.time.ZoneId
 import java.time.ZonedDateTime
@@ -35,6 +34,11 @@ abstract class ExtendedPApplet(private val renderer: String, protected val isSav
             size(1280, 720, renderer)
             pixelDensity(1)
         }
+    }
+
+    override fun keyPressed()
+    {
+        if (key == ESC) { return }
     }
 
     // -------- Sketch Utils -------- //
@@ -114,7 +118,7 @@ abstract class ExtendedPApplet(private val renderer: String, protected val isSav
     }
 
     /**
-     * Calculate two points on the sphere.
+     * Calculate the distance between two points on the sphere.
      */
     protected fun haversine(latitude1: Float, longitude1: Float, latitude2: Float, longitude2: Float, radius: Float = 1.0f): Float
     {
@@ -135,27 +139,163 @@ abstract class ExtendedPApplet(private val renderer: String, protected val isSav
         return s * t < 0.0f
     }
 
-    // -------- GL Utils -------- //
-
-    protected fun viewToWorld(v: PVector): PVector
-    {
-        return viewToWorld(v, g)
-    }
+    protected fun viewToWorld(v: PVector): PVector = viewToWorld(v, g)
 
     protected fun viewToWorld(v: PVector, pg: PGraphics): PVector
     {
-        // Get a view matrix whose up vector is flipped.
         val viewMat = (pg as PGraphicsOpenGL).camera.get()
-        viewMat.m00 *= -1.0f
-        viewMat.m01 *= -1.0f
-        viewMat.m02 *= -1.0f
-        viewMat.m10 *= -1.0f
-        viewMat.m11 *= -1.0f
-        viewMat.m12 *= -1.0f
+        val side = PVector(viewMat.m00, viewMat.m01, viewMat.m02)
+        val up = PVector(-viewMat.m10, -viewMat.m11, -viewMat.m12)
+        val forward = PVector(viewMat.m20, viewMat.m21, viewMat.m22)
+        return PVector.mult(side, v.x).add(PVector.mult(up, v.y)).add(PVector.mult(forward, v.z))
+    }
 
-        val side = PVector(viewMat.m00, viewMat.m10, viewMat.m20)
-        val up = PVector(viewMat.m01, viewMat.m11, viewMat.m21)
-        val forward = PVector(viewMat.m02, viewMat.m12, viewMat.m22)
-        return PVector.mult(side, v.x).add(PVector.mult(up, v.y)).add(PVector.mult(forward, v.z)).normalize()
+    protected fun applyBillboard() = applyBillboard(g)
+
+    protected fun applyBillboard(pg: PGraphics)
+    {
+        val pg = pg as PGraphicsOpenGL
+        val viewMat = pg.camera.get()
+        viewMat.m03 = 0.0f
+        viewMat.m13 = 0.0f
+        viewMat.m23 = 0.0f
+        viewMat.transpose()
+        pg.applyMatrix(viewMat)
+    }
+
+    protected fun rotate(q: Quaternion, v: PVector): PVector
+    {
+        val ret = q.mul(Quaternion(v)).mul(q.inverse())
+        return PVector(ret.x, ret.y, ret.z)
+    }
+
+    // -------- Shapes -------- //
+
+    protected fun createCube(size: Float = 1.0f) : PShape
+    {
+        val cube = createShape()
+        cube.beginShape(TRIANGLES)
+
+        // Bottom (y = -size)
+        cube.normal(-1.0f, -1.0f, -1.0f); cube.vertex(-size, -size, -size)
+        cube.normal( 1.0f, -1.0f, -1.0f); cube.vertex( size, -size, -size)
+        cube.normal( 1.0f, -1.0f,  1.0f); cube.vertex( size, -size,  size)
+
+        cube.normal(-1.0f, -1.0f, -1.0f); cube.vertex(-size, -size, -size)
+        cube.normal( 1.0f, -1.0f,  1.0f); cube.vertex( size, -size,  size)
+        cube.normal(-1.0f, -1.0f,  1.0f); cube.vertex(-size, -size,  size)
+
+        // Top (y = +size)
+        cube.normal(-1.0f,  1.0f, -1.0f); cube.vertex(-size,  size, -size)
+        cube.normal(-1.0f,  1.0f,  1.0f); cube.vertex(-size,  size,  size)
+        cube.normal( 1.0f,  1.0f,  1.0f); cube.vertex( size,  size,  size)
+
+        cube.normal(-1.0f,  1.0f, -1.0f); cube.vertex(-size,  size, -size)
+        cube.normal( 1.0f,  1.0f,  1.0f); cube.vertex( size,  size,  size)
+        cube.normal( 1.0f,  1.0f, -1.0f); cube.vertex( size,  size, -size)
+
+        // Front (z = -size)
+        cube.normal(-1.0f, -1.0f, -1.0f); cube.vertex(-size, -size, -size)
+        cube.normal(-1.0f,  1.0f, -1.0f); cube.vertex(-size,  size, -size)
+        cube.normal( 1.0f,  1.0f, -1.0f); cube.vertex( size,  size, -size)
+
+        cube.normal(-1.0f, -1.0f, -1.0f); cube.vertex(-size, -size, -size)
+        cube.normal( 1.0f,  1.0f, -1.0f); cube.vertex( size,  size, -size)
+        cube.normal( 1.0f, -1.0f, -1.0f); cube.vertex( size, -size, -size)
+
+        // Back (z = +size)
+        cube.normal(-1.0f, -1.0f,  1.0f); cube.vertex(-size, -size,  size)
+        cube.normal( 1.0f, -1.0f,  1.0f); cube.vertex( size, -size,  size)
+        cube.normal( 1.0f,  1.0f,  1.0f); cube.vertex( size,  size,  size)
+
+        cube.normal(-1.0f, -1.0f,  1.0f); cube.vertex(-size, -size,  size)
+        cube.normal( 1.0f,  1.0f,  1.0f); cube.vertex( size,  size,  size)
+        cube.normal(-1.0f,  1.0f,  1.0f); cube.vertex(-size,  size,  size)
+
+        // Left (x = -size)
+        cube.normal(-1.0f, -1.0f, -1.0f); cube.vertex(-size, -size, -size)
+        cube.normal(-1.0f, -1.0f,  1.0f); cube.vertex(-size, -size,  size)
+        cube.normal(-1.0f,  1.0f,  1.0f); cube.vertex(-size,  size,  size)
+
+        cube.normal(-1.0f, -1.0f, -1.0f); cube.vertex(-size, -size, -size)
+        cube.normal(-1.0f,  1.0f,  1.0f); cube.vertex(-size,  size,  size)
+        cube.normal(-1.0f,  1.0f, -1.0f); cube.vertex(-size,  size, -size)
+
+        // Right (x = +size)
+        cube.normal( 1.0f, -1.0f, -1.0f); cube.vertex( size, -size, -size)
+        cube.normal( 1.0f,  1.0f, -1.0f); cube.vertex( size,  size, -size)
+        cube.normal( 1.0f,  1.0f,  1.0f); cube.vertex( size,  size,  size)
+
+        cube.normal( 1.0f, -1.0f, -1.0f); cube.vertex( size, -size, -size)
+        cube.normal( 1.0f,  1.0f,  1.0f); cube.vertex( size,  size,  size)
+        cube.normal( 1.0f, -1.0f,  1.0f); cube.vertex( size, -size,  size)
+
+        cube.endShape()
+
+        return cube
+    }
+
+    protected fun createCubeFlat(size: Float = 1.0f) : PShape
+    {
+        val cube = createShape()
+        cube.beginShape(TRIANGLES)
+
+        // Bottom (y = -size), normal = (0, -1, 0)
+        cube.normal( 0.0f, -1.0f,  0.0f); cube.vertex(-size, -size, -size)
+        cube.normal( 0.0f, -1.0f,  0.0f); cube.vertex( size, -size, -size)
+        cube.normal( 0.0f, -1.0f,  0.0f); cube.vertex( size, -size,  size)
+
+        cube.normal( 0.0f, -1.0f,  0.0f); cube.vertex(-size, -size, -size)
+        cube.normal( 0.0f, -1.0f,  0.0f); cube.vertex( size, -size,  size)
+        cube.normal( 0.0f, -1.0f,  0.0f); cube.vertex(-size, -size,  size)
+
+        // Top (y = +size), normal = (0, +1, 0)
+        cube.normal( 0.0f,  1.0f,  0.0f); cube.vertex(-size,  size, -size)
+        cube.normal( 0.0f,  1.0f,  0.0f); cube.vertex(-size,  size,  size)
+        cube.normal( 0.0f,  1.0f,  0.0f); cube.vertex( size,  size,  size)
+
+        cube.normal( 0.0f,  1.0f,  0.0f); cube.vertex(-size,  size, -size)
+        cube.normal( 0.0f,  1.0f,  0.0f); cube.vertex( size,  size,  size)
+        cube.normal( 0.0f,  1.0f,  0.0f); cube.vertex( size,  size, -size)
+
+        // Front (z = -size), normal = (0, 0, -1)
+        cube.normal( 0.0f,  0.0f, -1.0f); cube.vertex(-size, -size, -size)
+        cube.normal( 0.0f,  0.0f, -1.0f); cube.vertex(-size,  size, -size)
+        cube.normal( 0.0f,  0.0f, -1.0f); cube.vertex( size,  size, -size)
+
+        cube.normal( 0.0f,  0.0f, -1.0f); cube.vertex(-size, -size, -size)
+        cube.normal( 0.0f,  0.0f, -1.0f); cube.vertex( size,  size, -size)
+        cube.normal( 0.0f,  0.0f, -1.0f); cube.vertex( size, -size, -size)
+
+        // Back (z = +size), normal = (0, 0, +1)
+        cube.normal( 0.0f,  0.0f,  1.0f); cube.vertex(-size, -size,  size)
+        cube.normal( 0.0f,  0.0f,  1.0f); cube.vertex( size, -size,  size)
+        cube.normal( 0.0f,  0.0f,  1.0f); cube.vertex( size,  size,  size)
+
+        cube.normal( 0.0f,  0.0f,  1.0f); cube.vertex(-size, -size,  size)
+        cube.normal( 0.0f,  0.0f,  1.0f); cube.vertex( size,  size,  size)
+        cube.normal( 0.0f,  0.0f,  1.0f); cube.vertex(-size,  size,  size)
+
+        // Left (x = -size), normal = (-1, 0, 0)
+        cube.normal(-1.0f,  0.0f,  0.0f); cube.vertex(-size, -size, -size)
+        cube.normal(-1.0f,  0.0f,  0.0f); cube.vertex(-size, -size,  size)
+        cube.normal(-1.0f,  0.0f,  0.0f); cube.vertex(-size,  size,  size)
+
+        cube.normal(-1.0f,  0.0f,  0.0f); cube.vertex(-size, -size, -size)
+        cube.normal(-1.0f,  0.0f,  0.0f); cube.vertex(-size,  size,  size)
+        cube.normal(-1.0f,  0.0f,  0.0f); cube.vertex(-size,  size, -size)
+
+        // Right (x = +size), normal = (+1, 0, 0)
+        cube.normal( 1.0f,  0.0f,  0.0f); cube.vertex( size, -size, -size)
+        cube.normal( 1.0f,  0.0f,  0.0f); cube.vertex( size,  size, -size)
+        cube.normal( 1.0f,  0.0f,  0.0f); cube.vertex( size,  size,  size)
+
+        cube.normal( 1.0f,  0.0f,  0.0f); cube.vertex( size, -size, -size)
+        cube.normal( 1.0f,  0.0f,  0.0f); cube.vertex( size,  size,  size)
+        cube.normal( 1.0f,  0.0f,  0.0f); cube.vertex( size, -size,  size)
+
+        cube.endShape()
+
+        return cube
     }
 }
