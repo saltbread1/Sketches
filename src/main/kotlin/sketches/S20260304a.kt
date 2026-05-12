@@ -2,13 +2,12 @@ package sketches
 
 import mesh.HalfEdgeMesh
 import mesh.data.Icosahedron
-import processing.core.PGraphics
 import processing.core.PShape
 import processing.core.PVector
 
 
 @Suppress("unused")
-class S20260304a : ExtendedPApplet(P3D, true)
+class S20260304a : ExtendedPApplet(P3D)
 {
     private val fov = PI * 0.5f
     private val far = 10.0f
