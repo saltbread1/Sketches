@@ -4,9 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="604821d5-04d4-484a-bce1-fe37c1651b17" name="Changes" comment="260304a">
+    <list default="true" id="604821d5-04d4-484a-bce1-fe37c1651b17" name="Changes" comment="feat: add a method to rotate coordinate from quaternion">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/sketches/S20260304a.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/sketches/S20260304a.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/sketches/ExtendedPApplet.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/sketches/ExtendedPApplet.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -44,6 +44,8 @@
         <option value="vs-template" />
         <option value="Class" />
         <option value="Kotlin Class" />
+        <option value="gs-template" />
+        <option value="fs-template" />
       </list>
     </option>
   </component>
@@ -76,7 +78,7 @@
     &quot;git-widget-placeholder&quot;: &quot;development&quot;,
     &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
     &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Users/sakaguchitakeru/workspace/CreativeCoding/Sketches/src/main/resources/shaders&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/sakaguchitakeru/workspace/CreativeCoding/Sketches/src/main/resources/shaders/S20260512a&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -92,10 +94,12 @@
 }</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/src/main/resources/shaders/S20260512a" />
       <recent name="$PROJECT_DIR$/src/main/resources/shaders" />
       <recent name="$PROJECT_DIR$/src/main/resources/shaders/S20260304a" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/src/main/resources/shaders" />
       <recent name="$PROJECT_DIR$/src/main/resources/shaders/S20260304a" />
       <recent name="$PROJECT_DIR$/src/main/resources/textures" />
       <recent name="$PROJECT_DIR$/src/main/resources/texture" />
@@ -255,6 +259,8 @@
       <workItem from="1777075645152" duration="8976000" />
       <workItem from="1778339775381" duration="6020000" />
       <workItem from="1778454327061" duration="5316000" />
+      <workItem from="1778546308468" duration="6191000" />
+      <workItem from="1778593839811" duration="36127000" />
     </task>
     <task id="LOCAL-00001" summary="update dependencies for platform-specific JOGL support">
       <option name="closed" value="true" />
@@ -392,7 +398,23 @@
       <option name="project" value="LOCAL" />
       <updated>1778466085237</updated>
     </task>
-    <option name="localTasksCounter" value="18" />
+    <task id="LOCAL-00018" summary="update">
+      <option name="closed" value="true" />
+      <created>1778546332255</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1778546332255</updated>
+    </task>
+    <task id="LOCAL-00019" summary="feat: add a method to rotate coordinate from quaternion">
+      <option name="closed" value="true" />
+      <created>1778685902688</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1778685902688</updated>
+    </task>
+    <option name="localTasksCounter" value="20" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -402,7 +424,6 @@
     <MESSAGE value="update dependencies for platform-specific JOGL support" />
     <MESSAGE value="WIP: S20260304a" />
     <MESSAGE value="add methods" />
-    <MESSAGE value="update" />
     <MESSAGE value="WIP: 20260304" />
     <MESSAGE value="feat: add Quaternion class and integrate with ExtendedPApplet" />
     <MESSAGE value="fix: modified `viewToWorld` method in ExtendedPApplet" />
@@ -412,7 +433,9 @@
     <MESSAGE value="wip: 260425a" />
     <MESSAGE value="260425a" />
     <MESSAGE value="260304a" />
-    <option name="LAST_COMMIT_MESSAGE" value="260304a" />
+    <MESSAGE value="update" />
+    <MESSAGE value="feat: add a method to rotate coordinate from quaternion" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat: add a method to rotate coordinate from quaternion" />
   </component>
   <component name="XDebuggerManager">
     <watches-manager>
