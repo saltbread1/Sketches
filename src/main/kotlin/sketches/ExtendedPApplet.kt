@@ -26,8 +26,14 @@ abstract class ExtendedPApplet(private val renderer: String, protected val isSav
     {
         if (isSave)
         { // 4K
-            size(1920, 1080, renderer)
-            pixelDensity(2)
+//            size(1920, 1080, renderer)
+//            pixelDensity(2)
+
+            // `pixelDensity` should be 1 because the automatically calculated texture sent to the fragment shader
+            // is being clipped to the window size.
+            // For example, `filter(PShader)` is doesn't work with `pixelDensity` > 1.
+            size(3840, 2160, renderer)
+            pixelDensity(1)
         }
         else
         { // HD
