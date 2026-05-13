@@ -108,7 +108,7 @@ class Quaternion private constructor(val x: Float, val y: Float, val z: Float, v
          * @param fromDirection direction of rotation from (normalized)
          * @param toDirection   direction of rotation to (normalized)
          */
-        fun frontToRotation(fromDirection: PVector, toDirection: PVector): Quaternion
+        fun fromToRotation(fromDirection: PVector, toDirection: PVector): Quaternion
         {
             val axis = PVector.cross(fromDirection, toDirection, null).normalize()
             val rad = acos(PVector.dot(fromDirection, toDirection))

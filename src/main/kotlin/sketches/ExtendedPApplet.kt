@@ -169,6 +169,21 @@ abstract class ExtendedPApplet(private val renderer: String, protected val isSav
         return PVector(ret.x, ret.y, ret.z)
     }
 
+    protected fun rotate(pg: PGraphics, q: Quaternion)
+    {
+        val rMat = PMatrix3D()
+        rMat.m00 = 1.0f - 2.0f * (q.y * q.y + q.z * q.z)
+        rMat.m01 = 2.0f * (q.x * q.y - q.w * q.z)
+        rMat.m02 = 2.0f * (q.x * q.z + q.w * q.y)
+        rMat.m10 = 2.0f * (q.x * q.y + q.w * q.z)
+        rMat.m11 = 1.0f - 2.0f * (q.x * q.x + q.z * q.z)
+        rMat.m12 = 2.0f * (q.y * q.z - q.w * q.x)
+        rMat.m20 = 2.0f * (q.x * q.z - q.w * q.y)
+        rMat.m21 = 2.0f * (q.y * q.z + q.w * q.x)
+        rMat.m22 = 1.0f - 2.0f * (q.x * q.x + q.y * q.y)
+        pg.applyMatrix(rMat)
+    }
+
     // -------- Shapes -------- //
 
     protected fun createCube(size: Float = 1.0f) : PShape
@@ -297,5 +312,85 @@ abstract class ExtendedPApplet(private val renderer: String, protected val isSav
         cube.endShape()
 
         return cube
+    }
+
+    protected fun createRect(size: Float = 1.0f) : PShape
+    {
+        val rect = createShape()
+        rect.beginShape(TRIANGLES)
+
+        rect.normal(-1.0f, -1.0f, -1.0f); rect.vertex(-size, -size, 0.0f, 0.0f, 0.0f)
+        rect.normal(-1.0f,  1.0f, -1.0f); rect.vertex(-size,  size, 0.0f, 0.0f, 1.0f)
+        rect.normal( 1.0f,  1.0f, -1.0f); rect.vertex( size,  size, 0.0f, 1.0f, 1.0f)
+
+        rect.normal(-1.0f, -1.0f, -1.0f); rect.vertex(-size, -size, 0.0f, 0.0f, 0.0f)
+        rect.normal( 1.0f,  1.0f, -1.0f); rect.vertex( size,  size, 0.0f, 1.0f, 1.0f)
+        rect.normal( 1.0f, -1.0f, -1.0f); rect.vertex( size, -size, 0.0f, 1.0f, 0.0f)
+
+        rect.endShape()
+
+        return rect
+    }
+
+    protected fun createRectFlat(size: Float = 1.0f) : PShape
+    {
+        val rect = createShape()
+        rect.beginShape(TRIANGLES)
+
+        rect.normal( 0.0f,  0.0f, -1.0f); rect.vertex(-size, -size, 0.0f, 0.0f, 0.0f)
+        rect.normal( 0.0f,  0.0f, -1.0f); rect.vertex(-size,  size, 0.0f, 0.0f, 1.0f)
+        rect.normal( 0.0f,  0.0f, -1.0f); rect.vertex( size,  size, 0.0f, 1.0f, 1.0f)
+
+        rect.normal( 0.0f,  0.0f, -1.0f); rect.vertex(-size, -size, 0.0f, 0.0f, 0.0f)
+        rect.normal( 0.0f,  0.0f, -1.0f); rect.vertex( size,  size, 0.0f, 1.0f, 1.0f)
+        rect.normal( 0.0f,  0.0f, -1.0f); rect.vertex( size, -size, 0.0f, 1.0f, 0.0f)
+
+        rect.endShape()
+
+        return rect
+    }
+
+    protected fun createHemiSphere(size: Float = 1.0f, res: Int = 32) : PShape
+    {
+        val sphere = createShape()
+        val vertices = mutableListOf<PVector>()
+        // upper left to lower right
+        for (j in 0 .. res)
+        {
+            val v = j.toFloat() / res
+            for (i in 0 .. res)
+            {
+                val u = i.toFloat() / res
+                val x = cos(PI * u) * sin(PI * v) * size
+                val y = cos(PI * v) * size
+                val z = sin(PI * u) * sin(PI * v) * size
+                vertices.add(PVector(x, y, z))
+            }
+        }
+        sphere.beginShape(TRIANGLES)
+        for (j in 0 until res)
+        {
+            for (i in 0 until res)
+            {
+                val idx = j * (res + 1) + i
+
+                // quad vertices in CCW
+                val pos0 = vertices[idx]; val uv0 = PVector(i.toFloat() / res, j.toFloat() / res)
+                val pos1 = vertices[idx + res + 1]; val uv1 = PVector(i.toFloat() / res, (j + 1).toFloat() / res)
+                val pos2 = vertices[idx + res + 2]; val uv2 = PVector((i + 1).toFloat() / res, (j + 1).toFloat() / res)
+                val pos3 = vertices[idx + 1]; val uv3 = PVector((i + 1).toFloat() / res, j.toFloat() / res)
+
+                sphere.normal(pos0.x, pos0.y, pos0.z); sphere.vertex(pos0.x, pos0.y, pos0.z, uv0.x, uv0.y)
+                sphere.normal(pos1.x, pos1.y, pos1.z); sphere.vertex(pos1.x, pos1.y, pos1.z, uv1.x, uv1.y)
+                sphere.normal(pos2.x, pos2.y, pos2.z); sphere.vertex(pos2.x, pos2.y, pos2.z, uv2.x, uv2.y)
+
+                sphere.normal(pos0.x, pos0.y, pos0.z); sphere.vertex(pos0.x, pos0.y, pos0.z, uv0.x, uv0.y)
+                sphere.normal(pos2.x, pos2.y, pos2.z); sphere.vertex(pos2.x, pos2.y, pos2.z, uv2.x, uv2.y)
+                sphere.normal(pos3.x, pos3.y, pos3.z); sphere.vertex(pos3.x, pos3.y, pos3.z, uv3.x, uv3.y)
+            }
+        }
+        sphere.endShape()
+
+        return sphere
     }
 }

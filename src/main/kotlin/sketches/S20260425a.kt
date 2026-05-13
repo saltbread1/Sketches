@@ -115,7 +115,7 @@ class S20260425a : ExtendedPApplet(P3D)
 
             val axis1 = PVector(0.0f, 1.0f, 0.0f)
             val axis2 = PVector.mult(bottomCenter, -1.0f).normalize()
-            val qua = Quaternion.frontToRotation(axis1, axis2)
+            val qua = Quaternion.fromToRotation(axis1, axis2)
 
             val pos =  rotate(qua, PVector(x, y, z)).add(bottomCenter)
             val ext = radius * (0.1f + sqrt(1.0f - sq(z0))) * 0.2f
