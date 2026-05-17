@@ -1,7 +1,9 @@
 package sketches
 
+import com.jogamp.opengl.GL
 import processing.core.*
 import processing.opengl.PGraphicsOpenGL
+import processing.opengl.PJOGL
 import util.Quaternion
 import java.io.File
 import java.time.ZoneId
@@ -12,6 +14,12 @@ import kotlin.reflect.KClass
 abstract class ExtendedPApplet(private val renderer: String, protected val isSave: Boolean = false) : PApplet()
 {
     protected val aspect by lazy { width.toFloat() / height.toFloat() }
+    protected val texProjMat by lazy { PMatrix3D().apply {
+        m00 = 0.5f; m01 = 0.0f; m02 = 0.0f; m03 = 0.5f
+        m10 = 0.0f; m11 = 0.5f; m12 = 0.0f; m13 = 0.5f
+        m20 = 0.0f; m21 = 0.0f; m22 = 1.0f; m23 = 0.0f
+        m30 = 0.0f; m31 = 0.0f; m32 = 0.0f; m33 = 1.0f
+    } }
 
     companion object
     {
@@ -398,5 +406,35 @@ abstract class ExtendedPApplet(private val renderer: String, protected val isSav
         sphere.endShape()
 
         return sphere
+    }
+
+    // -------- PGL -------- //
+
+    protected fun usePGL(pg: PGraphics, render: (PJOGL) -> Unit)
+    {
+        val pgl = (pg as PGraphicsOpenGL).beginPGL() as PJOGL
+        render(pgl)
+        endPGL()
+    }
+
+    protected fun enableCullFaceBack(pg: PGraphics, render: () -> Unit)
+    {
+        enableCullFace(pg, GL.GL_BACK, render)
+    }
+
+    protected fun enableCullFaceFront(pg: PGraphics, render: () -> Unit)
+    {
+        enableCullFace(pg, GL.GL_FRONT, render)
+    }
+
+    private fun enableCullFace(pg: PGraphics, backOrFront: Int, render: () -> Unit)
+    {
+        usePGL(pg) {
+            val gl = it.gl
+            gl.glEnable(GL.GL_CULL_FACE)
+            gl.glCullFace(backOrFront)
+            render()
+            gl.glDisable(GL.GL_CULL_FACE)
+        }
     }
 }
