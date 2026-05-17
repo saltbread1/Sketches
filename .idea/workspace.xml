@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="604821d5-04d4-484a-bce1-fe37c1651b17" name="Changes" comment="feat: add a method to rotate coordinate from quaternion">
+    <list default="true" id="604821d5-04d4-484a-bce1-fe37c1651b17" name="Changes" comment="sketch: S20260512">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/sketches/ExtendedPApplet.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/sketches/ExtendedPApplet.kt" afterDir="false" />
     </list>
@@ -78,7 +78,7 @@
     &quot;git-widget-placeholder&quot;: &quot;development&quot;,
     &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
     &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Users/sakaguchitakeru/workspace/CreativeCoding/Sketches/src/main/resources/shaders/S20260512a&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/sakaguchitakeru/workspace/CreativeCoding/Sketches/src/main/resources/shaders&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -94,11 +94,13 @@
 }</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/src/main/resources/shaders/S20260512a" />
       <recent name="$PROJECT_DIR$/src/main/resources/shaders" />
+      <recent name="$PROJECT_DIR$/src/main/resources/shaders/S20260514a" />
+      <recent name="$PROJECT_DIR$/src/main/resources/shaders/S20260512a" />
       <recent name="$PROJECT_DIR$/src/main/resources/shaders/S20260304a" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
       <recent name="$PROJECT_DIR$/src/main/resources/shaders" />
       <recent name="$PROJECT_DIR$/src/main/resources/shaders/S20260304a" />
       <recent name="$PROJECT_DIR$/src/main/resources/textures" />
@@ -260,7 +262,12 @@
       <workItem from="1778339775381" duration="6020000" />
       <workItem from="1778454327061" duration="5316000" />
       <workItem from="1778546308468" duration="6191000" />
-      <workItem from="1778593839811" duration="36127000" />
+      <workItem from="1778593839811" duration="37463000" />
+      <workItem from="1778764925609" duration="31324000" />
+      <workItem from="1778948265435" duration="1624000" />
+      <workItem from="1778988232728" duration="28000" />
+      <workItem from="1778988270079" duration="78000" />
+      <workItem from="1778988356794" duration="5986000" />
     </task>
     <task id="LOCAL-00001" summary="update dependencies for platform-specific JOGL support">
       <option name="closed" value="true" />
@@ -414,7 +421,23 @@
       <option name="project" value="LOCAL" />
       <updated>1778685902688</updated>
     </task>
-    <option name="localTasksCounter" value="20" />
+    <task id="LOCAL-00020" summary="update: fix `pixelDensity` to 1">
+      <option name="closed" value="true" />
+      <created>1778693462145</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1778693462145</updated>
+    </task>
+    <task id="LOCAL-00021" summary="sketch: S20260512">
+      <option name="closed" value="true" />
+      <created>1778693495271</created>
+      <option name="number" value="00021" />
+      <option name="presentableId" value="LOCAL-00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1778693495271</updated>
+    </task>
+    <option name="localTasksCounter" value="22" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -435,7 +458,9 @@
     <MESSAGE value="260304a" />
     <MESSAGE value="update" />
     <MESSAGE value="feat: add a method to rotate coordinate from quaternion" />
-    <option name="LAST_COMMIT_MESSAGE" value="feat: add a method to rotate coordinate from quaternion" />
+    <MESSAGE value="update: fix `pixelDensity` to 1" />
+    <MESSAGE value="sketch: S20260512" />
+    <option name="LAST_COMMIT_MESSAGE" value="sketch: S20260512" />
   </component>
   <component name="XDebuggerManager">
     <watches-manager>
